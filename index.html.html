@@ -1,0 +1,1755 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portafolio MZA Architects</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:#111;overflow:hidden}
+:root{--sw:320px}
+#app{display:flex;height:100vh}
+
+/* ── SIDEBAR ── */
+#sb{width:var(--sw);min-width:var(--sw);background:#fff;display:flex;flex-direction:column;z-index:10;box-shadow:4px 0 24px rgba(0,0,0,.18)}
+#sb-top{padding:18px 18px 0;flex-shrink:0;border-bottom:1px solid #f0f0f0}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.brand-logo{width:34px;height:34px;background:#111;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;color:#fff;font-size:12px;font-weight:600;letter-spacing:.05em;flex-shrink:0}
+.brand h1{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:#111;line-height:1.1}
+.brand p{font-size:10px;color:#999;font-weight:300}
+#searchbox{width:100%;padding:7px 11px;border:1px solid #e5e5e5;border-radius:6px;font-size:12px;font-family:inherit;background:#fafafa;outline:none;margin-bottom:12px;transition:border .15s}
+#searchbox:focus{border-color:#999;background:#fff}
+#searchbox::placeholder{color:#ccc}
+#stats{display:flex;gap:14px;padding-bottom:12px}
+.st{text-align:center}.st-n{font-size:20px;font-weight:500;color:#111;font-family:'Cormorant Garamond',serif}.st-l{font-size:10px;color:#aaa;font-weight:300;margin-top:1px}
+
+/* filters */
+#filt{padding:10px 18px 8px;border-bottom:1px solid #f0f0f0;flex-shrink:0}
+.filt-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.filt-head label{font-size:10px;color:#bbb;letter-spacing:.07em;text-transform:uppercase}
+.filt-edit-btn{font-size:10px;color:#999;background:none;border:1px solid #e5e5e5;border-radius:4px;padding:2px 7px;cursor:pointer;font-family:inherit;transition:all .12s}
+.filt-edit-btn:hover{background:#111;color:#fff;border-color:#111}
+#fwrap{display:flex;flex-wrap:wrap;gap:4px}
+.fb{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:20px;border:1px solid transparent;cursor:pointer;font-family:inherit;transition:all .12s;background:#f5f5f5;color:#777}
+.fb .fd{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.fb.on{background:#fff;border-color:currentColor;font-weight:500}
+
+/* list */
+#plist-wrap{flex:1;overflow-y:auto}
+#plist-wrap::-webkit-scrollbar{width:3px}
+#plist-wrap::-webkit-scrollbar-thumb{background:#e0e0e0;border-radius:2px}
+.gh{padding:7px 18px 3px;font-size:10px;color:#bbb;text-transform:uppercase;letter-spacing:.07em;background:#fafafa;position:sticky;top:0;z-index:5;border-bottom:1px solid #f4f4f4}
+.pi{display:flex;align-items:center;gap:9px;padding:9px 18px;cursor:pointer;border-bottom:1px solid #f8f8f8;transition:background .1s}
+.pi:hover{background:#f9f9f9}
+.pi.sel{background:#f0f0f0}
+.pi-ico{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.pi-info{flex:1;min-width:0}
+.pi-name{font-size:12px;font-weight:500;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pi-loc{font-size:10px;color:#aaa;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pi-edit{opacity:0;background:none;border:1px solid #ddd;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;color:#888;flex-shrink:0;font-family:inherit;transition:all .12s}
+.pi:hover .pi-edit{opacity:1}
+.pi-edit:hover{background:#111;color:#fff;border-color:#111}
+#no-res{padding:40px 20px;text-align:center;color:#ccc;font-size:12px;display:none}
+#sb-add{padding:12px 18px;border-top:1px solid #f0f0f0;flex-shrink:0}
+#sb-add button{width:100%;background:#111;color:#fff;border:none;border-radius:7px;padding:10px;font-size:12px;cursor:pointer;font-family:inherit;transition:background .15s;letter-spacing:.02em}
+#sb-add button:hover{background:#333}
+
+/* ── MAP ── */
+#map{flex:1;position:relative;overflow:hidden}
+#mapsvg{width:100%;height:100%;display:block;cursor:grab}
+#mapsvg:active{cursor:grabbing}
+/* NO fill here — controlled entirely by D3 attr() calls */
+.country{stroke-width:.4;transition:fill .25s}
+
+/* tooltip */
+#tip{position:absolute;pointer-events:none;z-index:50;background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:8px 12px;box-shadow:0 4px 20px rgba(0,0,0,.12);opacity:0;transition:opacity .12s;max-width:200px}
+#tip-name{font-size:12px;font-weight:500;color:#111}
+#tip-loc{font-size:10px;color:#888;margin-top:2px}
+#tip-cat{font-size:10px;margin-top:4px;padding:1px 7px;border-radius:10px;display:inline-block}
+
+/* zoom */
+#zctr{position:absolute;bottom:20px;right:20px;z-index:20;display:flex;flex-direction:column;gap:2px}
+.zb{width:30px;height:30px;background:#fff;border:1px solid #ccc;cursor:pointer;font-size:18px;color:#444;display:flex;align-items:center;justify-content:center;transition:background .1s;font-family:sans-serif;font-weight:300}
+.zb:first-child{border-radius:6px 6px 0 0}.zb:last-child{border-radius:0 0 6px 6px}.zb:hover{background:#f0f0f0}
+#cc{position:absolute;top:14px;right:14px;z-index:20;background:rgba(255,255,255,.92);border:1px solid #ddd;border-radius:8px;padding:7px 13px;backdrop-filter:blur(4px)}
+#cc p{font-size:10px;color:#aaa}#cc span{font-size:18px;font-weight:500;color:#111;font-family:'Cormorant Garamond',serif;display:block}
+
+/* map settings button */
+#map-settings-btn{position:absolute;top:14px;left:14px;z-index:20;background:rgba(255,255,255,.92);border:1px solid #ddd;border-radius:8px;padding:7px 12px;cursor:pointer;font-size:11px;font-family:inherit;color:#555;display:flex;align-items:center;gap:5px;backdrop-filter:blur(4px);transition:all .12s}
+#map-settings-btn:hover{background:#fff;color:#111}
+
+/* add btn */
+#add-btn{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:20;background:#111;color:#fff;border:none;border-radius:24px;padding:9px 22px;font-size:12px;cursor:pointer;font-family:inherit;box-shadow:0 4px 20px rgba(0,0,0,.45);transition:all .15s;white-space:nowrap}
+#add-btn:hover{background:#333;transform:translateX(-50%) translateY(-2px)}
+
+/* ── DETAIL PANEL ── */
+#det{position:absolute;bottom:0;left:0;right:0;z-index:30;background:#fff;border-top:1px solid #eee;box-shadow:0 -6px 30px rgba(0,0,0,.1);transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);padding:18px 22px}
+#det.open{transform:translateY(0)}
+#det-x{position:absolute;top:12px;right:16px;background:#f5f5f5;border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;color:#777;transition:background .12s}
+#det-x:hover{background:#e0e0e0}
+.dh{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+.d-ico{width:42px;height:42px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.d-name{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;color:#111;line-height:1.1}
+.d-loc{font-size:11px;color:#aaa;margin-top:3px}
+.d-tag{font-size:10px;padding:2px 7px;border-radius:10px;display:inline-block;margin-top:4px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.dc{background:#f8f8f8;border-radius:7px;padding:8px 10px}
+.dc-l{font-size:9px;color:#bbb;text-transform:uppercase;letter-spacing:.05em}
+.dc-v{font-size:13px;font-weight:500;color:#111;margin-top:2px;font-family:'Cormorant Garamond',serif}
+#det-photos{display:flex;gap:8px;margin-bottom:10px;overflow-x:auto;padding-bottom:4px}
+#det-photos::-webkit-scrollbar{height:3px}
+#det-photos::-webkit-scrollbar-thumb{background:#ddd;border-radius:2px}
+.det-photo{width:90px;height:65px;object-fit:cover;border-radius:6px;flex-shrink:0;cursor:pointer;border:2px solid transparent;transition:border .12s}
+.det-photo:hover{border-color:#111}
+.det-add-photo{width:90px;height:65px;border:1.5px dashed #ccc;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:#ccc;font-size:20px;transition:all .12s;background:none}
+.det-add-photo:hover{border-color:#999;color:#999}
+.det-edit-btn{background:#111;color:#fff;border:none;border-radius:6px;padding:7px 16px;font-size:12px;cursor:pointer;font-family:inherit;transition:background .12s}
+.det-edit-btn:hover{background:#333}
+
+/* ── MODALS shared ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.modal-bg.open{display:flex}
+.modal-box{background:#fff;border-radius:12px;max-width:94vw;max-height:90vh;overflow-y:auto;padding:28px;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal-box h2{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:#111;margin-bottom:20px}
+.mrow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.mrow.full{grid-template-columns:1fr;margin-bottom:12px}
+.mfield{display:flex;flex-direction:column;gap:5px}
+.mfield label{font-size:11px;color:#888}
+.mfield input,.mfield select{padding:8px 10px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;font-family:inherit;color:#111;outline:none;transition:border .15s;background:#fff}
+.mfield input:focus,.mfield select:focus{border-color:#999}
+.mfield input[type=color]{padding:2px 4px;height:36px;cursor:pointer}
+#modal-photos{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.mp-thumb{position:relative;width:80px;height:60px}
+.mp-thumb img{width:100%;height:100%;object-fit:cover;border-radius:6px}
+.mp-del{position:absolute;top:-5px;right:-5px;background:#e74c3c;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.mp-add{width:80px;height:60px;border:1.5px dashed #ccc;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#ccc;font-size:22px;transition:all .12s;background:none}
+.mp-add:hover{border-color:#888;color:#888}
+/* video thumbnails in modal */
+.mv-thumb{position:relative;width:100px;height:70px;border-radius:6px;overflow:hidden;background:#111;flex-shrink:0}
+.mv-thumb video,.mv-thumb .mv-yt-img{width:100%;height:100%;object-fit:cover;display:block}
+.mv-play-badge{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.3);pointer-events:none}
+/* video url input in modal */
+.mv-url-row{display:flex;gap:6px;margin-bottom:8px}
+.mv-url-row input{flex:1;padding:7px 10px;border:1px solid #e5e5e5;border-radius:6px;font-size:12px;font-family:inherit;outline:none}
+.mv-url-row input:focus{border-color:#999}
+.mv-url-row button{padding:7px 12px;background:#111;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap}
+/* video in detail panel */
+#det-videos{display:flex;gap:8px;margin-bottom:10px;overflow-x:auto;padding-bottom:4px}
+.det-vid{flex-shrink:0;width:100px;height:70px;border-radius:6px;overflow:hidden;position:relative;cursor:pointer;background:#111}
+.det-vid img,.det-vid video{width:100%;height:100%;object-fit:cover;display:block}
+.det-vid .vplay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35)}
+/* video lightbox */
+#vid-lb{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:500;display:none;align-items:center;justify-content:center}
+#vid-lb.open{display:flex}
+#vid-lb video{max-width:90vw;max-height:80vh;border-radius:8px;outline:none}
+#vid-lb iframe{width:min(840px,90vw);height:min(473px,50vw);border:none;border-radius:8px}
+#vl-x{position:absolute;top:16px;right:22px;background:none;border:none;color:#fff;font-size:28px;cursor:pointer;opacity:.7}
+#vl-x:hover{opacity:1}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+.btn-save{background:#111;color:#fff;border:none;border-radius:7px;padding:9px 22px;font-size:13px;cursor:pointer;font-family:inherit;transition:background .12s}
+.btn-save:hover{background:#333}
+.btn-cancel{background:none;color:#888;border:1px solid #ddd;border-radius:7px;padding:9px 22px;font-size:13px;cursor:pointer;font-family:inherit;transition:all .12s}
+.btn-cancel:hover{background:#f5f5f5}
+.btn-del{background:#fee;color:#c0392b;border:1px solid #fcc;border-radius:7px;padding:9px 16px;font-size:13px;cursor:pointer;font-family:inherit;margin-right:auto;transition:all .12s}
+.btn-del:hover{background:#c0392b;color:#fff;border-color:#c0392b}
+.modal-x{position:absolute;top:14px;right:18px;background:none;border:none;font-size:20px;cursor:pointer;color:#aaa;transition:color .12s}
+.modal-x:hover{color:#111}
+.section-label{font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:block}
+
+/* category editor rows */
+.cat-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f5f5f5}
+.cat-row:last-child{border-bottom:none}
+.cat-preview{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.cat-row input[type=text]{flex:1;padding:6px 9px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;font-family:inherit;outline:none}
+.cat-row input[type=text]:focus{border-color:#999}
+.cat-row input[type=color]{width:36px;height:30px;border:1px solid #e5e5e5;border-radius:6px;cursor:pointer;padding:2px}
+.emoji-pick{font-size:18px;cursor:pointer;width:36px;height:30px;display:flex;align-items:center;justify-content:center;border:1px solid #e5e5e5;border-radius:6px;background:#fff;transition:background .12s}
+.emoji-pick:hover{background:#f5f5f5}
+.emoji-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;padding:10px;background:#fafafa;border-radius:8px;max-height:140px;overflow-y:auto}
+.eg-btn{font-size:20px;cursor:pointer;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:background .1s;border:none;background:none}
+.eg-btn:hover{background:#e5e5e5}
+
+/* map settings panel */
+#mset-box{width:320px}
+.color-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f5f5f5}
+.color-row:last-child{border-bottom:none}
+.color-row label{font-size:13px;color:#444}
+.color-row input[type=color]{width:40px;height:30px;border:1px solid #ddd;border-radius:6px;cursor:pointer;padding:2px}
+
+/* map labels - styled inline via D3 */
+.lbl-country{pointer-events:none}
+.subdivision{pointer-events:none}
+
+#lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:400;display:none;align-items:center;justify-content:center}
+#lightbox.open{display:flex}
+#lb-content{display:flex;align-items:center;justify-content:center;max-width:90vw;max-height:85vh}
+#lb-img{max-width:90vw;max-height:85vh;border-radius:8px;object-fit:contain;display:block;user-select:none}
+#lb-x{position:absolute;top:16px;right:22px;background:none;border:none;color:#fff;font-size:28px;cursor:pointer;opacity:.7;z-index:10;line-height:1}
+#lb-x:hover{opacity:1}
+#lb-prev,#lb-next{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.12);border:none;color:#fff;font-size:42px;cursor:pointer;width:52px;height:72px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:background .15s;z-index:10;line-height:1;padding:0}
+#lb-prev{left:16px}
+#lb-next{right:16px}
+#lb-prev:hover,#lb-next:hover{background:rgba(255,255,255,0.25)}
+#lb-prev.hidden,#lb-next.hidden{opacity:0;pointer-events:none}
+#lb-counter{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,0.7);font-size:12px;font-family:'DM Sans',sans-serif;background:rgba(0,0,0,0.4);padding:4px 12px;border-radius:12px;pointer-events:none}
+#lb-x{position:absolute;top:16px;right:22px;background:none;border:none;color:#fff;font-size:28px;cursor:pointer;opacity:.7;transition:opacity .12s}
+#lb-x:hover{opacity:1}
+
+/* location filter */
+#loc-filt{padding:8px 18px 10px;border-bottom:1px solid #f0f0f0;flex-shrink:0;position:relative}
+.loc-filt-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.loc-filt-head label{font-size:10px;color:#bbb;letter-spacing:.07em;text-transform:uppercase}
+.loc-clear{font-size:10px;color:#aaa;background:none;border:none;cursor:pointer;padding:0;font-family:inherit;transition:color .12s}
+.loc-clear:hover{color:#111}
+#loc-search-wrap{position:relative}
+#loc-search{width:100%;padding:7px 28px 7px 10px;border:1px solid #e5e5e5;border-radius:6px;font-size:12px;font-family:inherit;background:#fafafa;outline:none;transition:border .15s;color:#111}
+#loc-search:focus{border-color:#999;background:#fff}
+#loc-search::placeholder{color:#ccc}
+#loc-search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:14px;color:#ccc;display:none;line-height:1;padding:0}
+#loc-search-clear.show{display:block}
+#loc-search-clear:hover{color:#888}
+#loc-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid #e5e5e5;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:500;max-height:220px;overflow-y:auto;display:none}
+#loc-dropdown.open{display:block}
+#loc-dropdown::-webkit-scrollbar{width:3px}
+#loc-dropdown::-webkit-scrollbar-thumb{background:#e0e0e0;border-radius:2px}
+.dd-section{padding:4px 0}
+.dd-country{padding:6px 12px 4px;font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:.06em;font-weight:500}
+.dd-item{padding:7px 12px 7px 20px;font-size:12px;color:#444;cursor:pointer;transition:background .1s;display:flex;align-items:center;justify-content:space-between}
+.dd-item:hover{background:#f5f5f5}
+.dd-item.on{background:#f0f0f0;color:#111;font-weight:500}
+.dd-item.on::after{content:'✓';font-size:11px;color:#111}
+.dd-country-item{padding:7px 12px;font-size:12px;color:#222;cursor:pointer;font-weight:500;transition:background .1s;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f5f5f5}
+.dd-country-item:hover{background:#f5f5f5}
+.dd-country-item.on{background:#f0f0f0;font-weight:600}
+.dd-country-item.on::after{content:'✓';font-size:11px;color:#111}
+#loc-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.loc-tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:12px;background:#111;color:#fff;cursor:pointer}
+.loc-tag span{font-size:10px;opacity:.7;margin-left:2px}
+.loc-tag:hover span{opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- SIDEBAR -->
+<div id="sb">
+  <div id="sb-top">
+    <div class="brand">
+      <div class="brand-logo">MZA</div>
+      <div><h1>Portafolio MZA</h1><p>Proyectos de arquitectura</p></div>
+    </div>
+    <input id="searchbox" type="text" placeholder="Buscar proyecto o ciudad…">
+    <div id="stats">
+      <div class="st"><div class="st-n" id="sn-total">0</div><div class="st-l">proyectos</div></div>
+      <div class="st"><div class="st-n" id="sn-ctry">0</div><div class="st-l">países</div></div>
+      <div class="st"><div class="st-n" id="sn-cats">0</div><div class="st-l">categorías</div></div>
+    </div>
+  </div>
+  <div id="filt">
+    <div class="filt-head">
+      <label>Categorías</label>
+      <button class="filt-edit-btn" id="open-cat-editor">✏️ editar categorías</button>
+    </div>
+    <div id="fwrap"></div>
+  </div>
+  <div id="loc-filt">
+    <div class="loc-filt-head">
+      <label>Localización</label>
+      <button class="loc-clear" id="loc-clear-btn">Limpiar</button>
+    </div>
+    <div id="loc-search-wrap">
+      <input id="loc-search" type="text" placeholder="País o ciudad…" autocomplete="off">
+      <button id="loc-search-clear">✕</button>
+      <div id="loc-dropdown"></div>
+    </div>
+    <div id="loc-tags"></div>
+  </div>
+  <div id="plist-wrap">
+    <div id="no-res">Sin resultados</div>
+    <div id="plist"></div>
+  </div>
+  <div id="sb-add"><button id="sb-add-btn">＋ &nbsp;Agregar nuevo proyecto</button></div>
+</div>
+
+<!-- MAP -->
+<div id="map">
+  <svg id="mapsvg" xmlns="http://www.w3.org/2000/svg"></svg>
+  <div id="tip"><div id="tip-name"></div><div id="tip-loc"></div><div id="tip-cat"></div></div>
+  <button id="map-settings-btn">🎨 Colores del mapa</button>
+  <div id="zctr"><button class="zb" id="zin">+</button><button class="zb" id="zout">−</button></div>
+  <div id="cc"><p>Países con proyectos</p><span id="cc-n">0</span></div>
+  <button id="add-btn">＋ Agregar proyecto</button>
+
+  <!-- DETAIL -->
+  <div id="det">
+    <button id="det-x">✕</button>
+    <div class="dh">
+      <div class="d-ico" id="d-ico"></div>
+      <div>
+        <div class="d-name" id="d-name"></div>
+        <div class="d-loc" id="d-loc"></div>
+        <span class="d-tag" id="d-tag"></span>
+      </div>
+    </div>
+    <div id="d-desc" style="font-size:12px;color:#666;line-height:1.65;margin-bottom:10px;display:none;font-style:italic"></div>
+    <div id="det-photos"></div>
+    <div id="det-videos"></div>
+    <div class="dgrid">
+      <div class="dc"><div class="dc-l">Categoría</div><div class="dc-v" id="d-cat"></div></div>
+      <div class="dc"><div class="dc-l">Ciudad</div><div class="dc-v" id="d-city"></div></div>
+      <div class="dc"><div class="dc-l">País</div><div class="dc-v" id="d-country"></div></div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:2px">
+      <button class="det-edit-btn" id="d-edit-btn">✏️ Editar proyecto</button>
+      <a id="d-gmaps" href="#" target="_blank" rel="noopener"
+        style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:6px;border:1px solid #e0e0e0;font-size:12px;color:#555;text-decoration:none;background:#fff;transition:all .12s;flex-shrink:0">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#EA4335"/>
+          <circle cx="12" cy="9" r="2.5" fill="white"/>
+        </svg>
+        Ver en Maps
+      </a>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- PROJECT MODAL -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal-box" style="width:520px">
+    <button class="modal-x" id="modal-x">✕</button>
+    <h2 id="modal-title">Editar proyecto</h2>
+    <div class="mrow full"><div class="mfield"><label>Nombre del proyecto</label><input id="m-name" type="text" placeholder="Nombre…"></div></div>
+    <div class="mrow">
+      <div class="mfield"><label>Ciudad</label><input id="m-city" type="text" placeholder="Ciudad…"></div>
+      <div class="mfield"><label>País</label><input id="m-country" type="text" placeholder="País…"></div>
+    </div>
+    <div class="mrow">
+      <div class="mfield"><label>Latitud</label><input id="m-lat" type="number" step="0.0001" placeholder="-32.89"></div>
+      <div class="mfield"><label>Longitud</label><input id="m-lng" type="number" step="0.0001" placeholder="-68.83"></div>
+    </div>
+    <div class="mrow full"><div class="mfield"><label>Categoría</label><select id="m-cat"></select></div></div>
+    <div class="mrow full"><div class="mfield"><label>Descripción del proyecto</label><textarea id="m-desc" placeholder="Breve descripción del proyecto, año, superficie, estado de obra…" rows="3" style="padding:8px 10px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;font-family:inherit;color:#111;outline:none;resize:vertical;width:100%;transition:border .15s;background:#fff;line-height:1.5"></textarea></div></div>
+    <span class="section-label">Fotos del proyecto</span>
+    <div id="modal-photos"></div>
+    <input type="file" id="photo-input" accept="image/*" multiple style="display:none">
+    <span class="section-label" style="margin-top:14px;display:block">Videos del proyecto</span>
+    <div class="mv-url-row">
+      <input id="m-vid-url" type="text" placeholder="Link de YouTube, Vimeo… o subí un archivo">
+      <button id="m-vid-add-url">Agregar</button>
+    </div>
+    <div id="modal-videos"></div>
+    <input type="file" id="vid-file-input" accept="video/*" multiple style="display:none">
+    <button style="font-size:11px;color:#999;background:none;border:1px solid #e5e5e5;border-radius:5px;padding:4px 10px;cursor:pointer;font-family:inherit;margin-bottom:12px" id="m-vid-file-btn">📁 Subir archivo de video</button>
+    <div class="modal-actions">
+      <button class="btn-del" id="btn-delete">🗑 Eliminar</button>
+      <button class="btn-cancel" id="btn-cancel">Cancelar</button>
+      <button class="btn-save" id="btn-save">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAP SETTINGS MODAL -->
+<div class="modal-bg" id="mset-bg">
+  <div class="modal-box" id="mset-box">
+    <button class="modal-x" id="mset-x">✕</button>
+    <h2>Colores del mapa</h2>
+    <div class="color-row"><label>🌊 Océanos / fondo</label><input type="color" id="c-ocean" value="#d0d0d0"></div>
+    <div class="color-row"><label>🌍 Tierra / continentes</label><input type="color" id="c-land" value="#3a3a3a"></div>
+    <div class="color-row"><label>✨ País seleccionado</label><input type="color" id="c-highlight" value="#6a6a6a"></div>
+    <div class="color-row"><label>〰️ Borde de países</label><input type="color" id="c-border" value="#555555"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="mset-reset">Restablecer</button>
+      <button class="btn-save" id="mset-close">Listo</button>
+    </div>
+  </div>
+</div>
+
+<!-- CATEGORY EDITOR MODAL -->
+<div class="modal-bg" id="cat-bg">
+  <div class="modal-box" style="width:480px">
+    <button class="modal-x" id="cat-x">✕</button>
+    <h2>Editar categorías</h2>
+    <p style="font-size:12px;color:#aaa;margin-bottom:16px">Cambiá el nombre, color e ícono de cada categoría.</p>
+    <div id="cat-rows"></div>
+    <div id="emoji-picker-area" style="display:none"></div>
+    <div class="modal-actions">
+      <button class="btn-save" id="cat-save">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox">
+  <button id="lb-x">✕</button>
+  <button id="lb-prev">&#8249;</button>
+  <div id="lb-content"><img id="lb-img" src="" alt=""></div>
+  <button id="lb-next">&#8250;</button>
+  <div id="lb-counter"></div>
+</div>
+<div id="vid-lb"><button id="vl-x">✕</button></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script>
+// ── STATE ──
+let CATS = {
+  residencia: {label:'Residencia',  color:'#C0392B', bg:'#FDEDEC', e:'🏠'},
+  concurso:   {label:'Concurso',    color:'#2471A3', bg:'#EAF4FB', e:'🏆'},
+  oficina:    {label:'Oficina',     color:'#D35400', bg:'#FEF5E7', e:'🏢'},
+  hotel:      {label:'Hotel',       color:'#1E8449', bg:'#EAFAF1', e:'🛎'},
+  comercial:  {label:'Comercial',   color:'#7D3C98', bg:'#F5EEF8', e:'🛍'},
+  gastronomia:{label:'Gastronomía', color:'#A04000', bg:'#FDECEA', e:'☕'},
+  cultural:   {label:'Cultural',    color:'#117A65', bg:'#E8F8F5', e:'🏛'},
+  educacion:  {label:'Educación',   color:'#1A5276', bg:'#EBF5FB', e:'🎓'},
+  industrial: {label:'Industrial',  color:'#555555', bg:'#F2F3F4', e:'🏭'},
+  iglesia:    {label:'Iglesia',     color:'#7B241C', bg:'#FDEDEC', e:'⛪'},
+};
+
+let MAP_COLORS = { ocean:'#d0d0d0', land:'#3a3a3a', highlight:'#6a6a6a', border:'#555555' };
+
+let PROJECTS = [
+  {id:1,name:"Concurso de Residencia",lat:40.71,lng:-74.01,cat:"concurso",city:"Nueva York",country:"EE.UU.",photos:[]},
+  {id:2,name:"Concurso Vivienda en C.",lat:19.43,lng:-99.13,cat:"concurso",city:"Ciudad de México",country:"México",photos:[]},
+  {id:3,name:"Competencia de Residencia",lat:48.85,lng:2.35,cat:"concurso",city:"París",country:"Francia",photos:[]},
+  {id:4,name:"Vía Pietro Mascagni",lat:45.46,lng:9.19,cat:"residencia",city:"Milán",country:"Italia",photos:[]},
+  {id:5,name:"Casa de Suecia",lat:59.33,lng:18.07,cat:"residencia",city:"Estocolmo",country:"Suecia",photos:[]},
+  {id:6,name:"Residencia Buenos Aires",lat:-34.60,lng:-58.38,cat:"residencia",city:"Buenos Aires",country:"Argentina",photos:[]},
+  {id:7,name:"Residencia Via Cervigiano",lat:45.83,lng:13.33,cat:"residencia",city:"Cervignano",country:"Italia",photos:[]},
+  {id:8,name:"Chatte, Residencia Isere",lat:45.16,lng:5.52,cat:"residencia",city:"Chatte",country:"Francia",photos:[]},
+  {id:9,name:"Residencia Paxos - Grecia",lat:39.20,lng:20.19,cat:"residencia",city:"Paxos",country:"Grecia",photos:[]},
+  {id:10,name:"Residencia Montegiani",lat:41.90,lng:12.50,cat:"residencia",city:"Roma",country:"Italia",photos:[]},
+  {id:11,name:"Residencia Bruening",lat:-33.45,lng:-70.65,cat:"residencia",city:"Santiago",country:"Chile",photos:[]},
+  {id:12,name:"Residencia Griggs",lat:51.51,lng:-0.13,cat:"residencia",city:"Londres",country:"Reino Unido",photos:[]},
+  {id:13,name:"Residencia Waxman",lat:40.72,lng:-74.02,cat:"residencia",city:"Nueva York",country:"EE.UU.",photos:[]},
+  {id:14,name:"Residencia Fernwood",lat:37.77,lng:-122.42,cat:"residencia",city:"San Francisco",country:"EE.UU.",photos:[]},
+  {id:15,name:"250 Village Blvd",lat:40.22,lng:-74.76,cat:"residencia",city:"New Jersey",country:"EE.UU.",photos:[]},
+  {id:16,name:"Residencia Marchiori",lat:45.41,lng:11.88,cat:"residencia",city:"Padova",country:"Italia",photos:[]},
+  {id:17,name:"Residencia Peralta Cher.",lat:-32.89,lng:-68.83,cat:"residencia",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:18,name:"Residencia Renato",lat:-32.87,lng:-68.85,cat:"residencia",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:19,name:"Residencia Bogado",lat:-32.91,lng:-68.80,cat:"residencia",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:20,name:"Residencia Ferreyra",lat:-31.42,lng:-64.19,cat:"residencia",city:"Córdoba",country:"Argentina",photos:[]},
+  {id:21,name:"Residencia Rodríguez",lat:-32.88,lng:-68.84,cat:"residencia",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:22,name:"Residencia Zettavi",lat:45.48,lng:9.21,cat:"residencia",city:"Milán",country:"Italia",photos:[]},
+  {id:23,name:"Residencia Fernández",lat:-32.90,lng:-68.82,cat:"residencia",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:24,name:"Residencia Multifamiliar",lat:-32.86,lng:-68.86,cat:"residencia",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:25,name:"Residencia Capel",lat:-30.73,lng:-71.34,cat:"residencia",city:"Coquimbo",country:"Chile",photos:[]},
+  {id:26,name:"Residencia Bastias",lat:-33.47,lng:-70.67,cat:"residencia",city:"Santiago",country:"Chile",photos:[]},
+  {id:27,name:"Residencia Bashmon",lat:32.08,lng:34.78,cat:"residencia",city:"Tel Aviv",country:"Israel",photos:[]},
+  {id:28,name:"Residencia Calderón",lat:19.45,lng:-99.15,cat:"residencia",city:"Ciudad de México",country:"México",photos:[]},
+  {id:29,name:"Residencia Diaz",lat:-32.92,lng:-68.81,cat:"residencia",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:30,name:"Residencia de Mantua",lat:45.16,lng:10.79,cat:"residencia",city:"Mantua",country:"Italia",photos:[]},
+  {id:31,name:"Residencia López",lat:-32.85,lng:-68.87,cat:"residencia",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:32,name:"Residencia Tognion",lat:45.44,lng:9.18,cat:"residencia",city:"Milán",country:"Italia",photos:[]},
+  {id:33,name:"Residencia Albarran",lat:19.41,lng:-99.11,cat:"residencia",city:"Ciudad de México",country:"México",photos:[]},
+  {id:34,name:"Residencia Berlanga",lat:40.42,lng:-3.70,cat:"residencia",city:"Madrid",country:"España",photos:[]},
+  {id:35,name:"Residencia Castro 01",lat:-33.43,lng:-70.63,cat:"residencia",city:"Santiago",country:"Chile",photos:[]},
+  {id:36,name:"Residencia Bensi",lat:45.50,lng:9.22,cat:"residencia",city:"Milán",country:"Italia",photos:[]},
+  {id:37,name:"Residencia José-Estefan.",lat:33.89,lng:35.50,cat:"residencia",city:"Beirut",country:"Líbano",photos:[]},
+  {id:38,name:"Residencia Contreras",lat:-33.49,lng:-70.69,cat:"residencia",city:"Santiago",country:"Chile",photos:[]},
+  {id:39,name:"Lar de Drummond",lat:-19.53,lng:-44.04,cat:"residencia",city:"Minas Gerais",country:"Brasil",photos:[]},
+  {id:40,name:"Residencia Farro",lat:-32.93,lng:-68.79,cat:"residencia",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:41,name:"Residencia Garay",lat:-32.84,lng:-68.88,cat:"residencia",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:42,name:"Concurso de Residencia 2",lat:48.87,lng:2.37,cat:"concurso",city:"París",country:"Francia",photos:[]},
+  {id:43,name:"Residencia Vandergriff",lat:32.73,lng:-97.11,cat:"residencia",city:"Texas",country:"EE.UU.",photos:[]},
+  {id:44,name:"Residencia Scofield",lat:33.75,lng:-84.39,cat:"residencia",city:"Atlanta",country:"EE.UU.",photos:[]},
+  {id:45,name:"Residencia con Vista al Mar",lat:36.14,lng:-5.35,cat:"residencia",city:"Gibraltar",country:"Gibraltar",photos:[]},
+  {id:46,name:"Apartamento Via Gesú",lat:45.47,lng:9.20,cat:"residencia",city:"Milán",country:"Italia",photos:[]},
+  {id:47,name:"Apartamento Monte de M.",lat:45.45,lng:9.17,cat:"residencia",city:"Milán",country:"Italia",photos:[]},
+  {id:48,name:"Apartamento Montova",lat:45.18,lng:10.81,cat:"residencia",city:"Mantua",country:"Italia",photos:[]},
+  {id:49,name:"Gruand Majlis - Residen.",lat:25.20,lng:55.27,cat:"residencia",city:"Dubai",country:"EAU",photos:[]},
+  {id:50,name:"Residencia Sommers",lat:47.37,lng:8.54,cat:"residencia",city:"Zúrich",country:"Suiza",photos:[]},
+  {id:51,name:"Apartamento Alfaro",lat:40.44,lng:-3.72,cat:"residencia",city:"Madrid",country:"España",photos:[]},
+  {id:52,name:"Cedro de Tahoe",lat:39.09,lng:-120.03,cat:"residencia",city:"Lake Tahoe",country:"EE.UU.",photos:[]},
+  {id:53,name:"Residencias Padin - Fach.",lat:42.88,lng:-8.54,cat:"residencia",city:"Santiago de Compostela",country:"España",photos:[]},
+  {id:54,name:"Residencia Padin",lat:42.86,lng:-8.52,cat:"residencia",city:"Santiago de Compostela",country:"España",photos:[]},
+  {id:55,name:"Residencia Porte",lat:48.83,lng:2.33,cat:"residencia",city:"París",country:"Francia",photos:[]},
+  {id:56,name:"Casas Adosadas Miles P.",lat:51.53,lng:-0.15,cat:"residencia",city:"Londres",country:"Reino Unido",photos:[]},
+  {id:57,name:"Residencia del Atrio",lat:40.40,lng:-3.68,cat:"residencia",city:"Madrid",country:"España",photos:[]},
+  {id:58,name:"Residencia en Dunlap Ad.",lat:36.09,lng:-119.36,cat:"residencia",city:"Dunlap, California",country:"EE.UU.",photos:[]},
+  {id:59,name:"210 Meadows Ends Court",lat:38.89,lng:-77.04,cat:"residencia",city:"Virginia",country:"EE.UU.",photos:[]},
+  {id:60,name:"354 Tuscarora Drive",lat:42.43,lng:-76.50,cat:"residencia",city:"Nueva York",country:"EE.UU.",photos:[]},
+  {id:61,name:"590 Lucille Dr.",lat:33.44,lng:-112.07,cat:"residencia",city:"Phoenix",country:"EE.UU.",photos:[]},
+  {id:62,name:"565 Driver Way",lat:33.46,lng:-112.05,cat:"residencia",city:"Phoenix",country:"EE.UU.",photos:[]},
+  {id:63,name:"551 Lucille Drive",lat:33.42,lng:-112.09,cat:"residencia",city:"Phoenix",country:"EE.UU.",photos:[]},
+  {id:64,name:"609 Dorothy Ct.",lat:33.48,lng:-112.11,cat:"residencia",city:"Phoenix",country:"EE.UU.",photos:[]},
+  {id:65,name:"Residencia de Monterrey",lat:25.67,lng:-100.31,cat:"residencia",city:"Monterrey",country:"México",photos:[]},
+  {id:66,name:"500 Residencia Fairview",lat:37.79,lng:-122.44,cat:"residencia",city:"San Francisco",country:"EE.UU.",photos:[]},
+  {id:67,name:"Residencia de Jeff Kelley",lat:34.05,lng:-118.24,cat:"residencia",city:"Los Ángeles",country:"EE.UU.",photos:[]},
+  {id:68,name:"1348 Valais",lat:46.23,lng:7.36,cat:"residencia",city:"Valais",country:"Suiza",photos:[]},
+  {id:69,name:"1348 Tyner Way",lat:34.07,lng:-118.26,cat:"residencia",city:"Los Ángeles",country:"EE.UU.",photos:[]},
+  {id:70,name:"723 Cristina Drive",lat:34.03,lng:-118.22,cat:"residencia",city:"Los Ángeles",country:"EE.UU.",photos:[]},
+  {id:71,name:"138 Mayhew Circle",lat:37.30,lng:-121.85,cat:"residencia",city:"San José",country:"EE.UU.",photos:[]},
+  {id:72,name:"530 Spencer Way",lat:34.09,lng:-118.28,cat:"residencia",city:"Los Ángeles",country:"EE.UU.",photos:[]},
+  {id:73,name:"668 Círculo de Hierbas R.",lat:34.01,lng:-118.20,cat:"residencia",city:"Los Ángeles",country:"EE.UU.",photos:[]},
+  {id:74,name:"425 Pahute Rd",lat:39.53,lng:-119.81,cat:"residencia",city:"Reno",country:"EE.UU.",photos:[]},
+  {id:75,name:"1066 Gorro de Guerra",lat:38.80,lng:-120.89,cat:"residencia",city:"Sacramento",country:"EE.UU.",photos:[]},
+  {id:76,name:"431 Valerie Ct.",lat:34.11,lng:-118.30,cat:"residencia",city:"Los Ángeles",country:"EE.UU.",photos:[]},
+  {id:77,name:"Wiley Park Plaza, Sidney",lat:-33.90,lng:151.17,cat:"residencia",city:"Sydney",country:"Australia",photos:[]},
+  {id:78,name:"Renovación del Número",lat:51.49,lng:-0.11,cat:"residencia",city:"Londres",country:"Reino Unido",photos:[]},
+  {id:79,name:"Residencia Gull Rock",lat:50.20,lng:-5.11,cat:"residencia",city:"Cornwall",country:"Reino Unido",photos:[]},
+  {id:80,name:"Residencia Da Kine Crib",lat:21.31,lng:-157.86,cat:"residencia",city:"Honolulú",country:"EE.UU.",photos:[]},
+  {id:81,name:"Villa del Bosco",lat:44.49,lng:11.34,cat:"residencia",city:"Bolonia",country:"Italia",photos:[]},
+  {id:82,name:"Residencia de Jed y Helen",lat:37.75,lng:-122.40,cat:"residencia",city:"San Francisco",country:"EE.UU.",photos:[]},
+  {id:83,name:"Residencia Walther",lat:48.14,lng:11.58,cat:"residencia",city:"Múnich",country:"Alemania",photos:[]},
+  {id:84,name:"Residencia Reynan",lat:-32.83,lng:-68.89,cat:"residencia",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:85,name:"Residencia Saltern",lat:51.55,lng:-0.17,cat:"residencia",city:"Londres",country:"Reino Unido",photos:[]},
+  {id:86,name:"Residencia Kibble",lat:55.86,lng:-4.25,cat:"residencia",city:"Glasgow",country:"Reino Unido",photos:[]},
+  {id:87,name:"Residencia Irlandesa",lat:53.33,lng:-6.25,cat:"residencia",city:"Dublín",country:"Irlanda",photos:[]},
+  {id:88,name:"Residencia Piazza Luigi E.",lat:41.92,lng:12.52,cat:"residencia",city:"Roma",country:"Italia",photos:[]},
+  {id:89,name:"Villa Cardinotti",lat:45.52,lng:9.24,cat:"residencia",city:"Milán",country:"Italia",photos:[]},
+  {id:90,name:"Residencia Grizzly",lat:37.87,lng:-122.27,cat:"residencia",city:"Berkeley",country:"EE.UU.",photos:[]},
+  {id:91,name:"3230 Polaris Rd.",lat:39.51,lng:-119.79,cat:"residencia",city:"Reno",country:"EE.UU.",photos:[]},
+  {id:92,name:"Residencia Rossi",lat:45.43,lng:9.16,cat:"residencia",city:"Milán",country:"Italia",photos:[]},
+  {id:93,name:"Residencia Guerra",lat:-32.94,lng:-68.77,cat:"residencia",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:94,name:"Residencia Saluta",lat:44.41,lng:8.93,cat:"residencia",city:"Génova",country:"Italia",photos:[]},
+  {id:95,name:"240 Estados",lat:34.13,lng:-118.32,cat:"residencia",city:"Los Ángeles",country:"EE.UU.",photos:[]},
+  {id:96,name:"Proyecto Joel",lat:-32.95,lng:-68.75,cat:"residencia",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:97,name:"Residencia de Pugliese",lat:41.88,lng:12.48,cat:"residencia",city:"Roma",country:"Italia",photos:[]},
+  {id:98,name:"Residencia del Mar Nort.",lat:53.55,lng:8.10,cat:"residencia",city:"Bremen",country:"Alemania",photos:[]},
+  {id:99,name:"1558 Tower Grove",lat:38.63,lng:-90.19,cat:"residencia",city:"St. Louis",country:"EE.UU.",photos:[]},
+  {id:100,name:"13407 Pharlan Turn",lat:38.91,lng:-77.06,cat:"residencia",city:"Virginia",country:"EE.UU.",photos:[]},
+  {id:101,name:"Casa de Jerry y Sherri H.",lat:36.17,lng:-115.14,cat:"residencia",city:"Las Vegas",country:"EE.UU.",photos:[]},
+  {id:102,name:"Residencia Castro 02",lat:-33.41,lng:-70.61,cat:"residencia",city:"Santiago",country:"Chile",photos:[]},
+  {id:103,name:"2191 Waverly Ct SE",lat:33.73,lng:-84.37,cat:"residencia",city:"Atlanta",country:"EE.UU.",photos:[]},
+  {id:104,name:"5240 Old National Hwy",lat:33.77,lng:-84.41,cat:"residencia",city:"Atlanta",country:"EE.UU.",photos:[]},
+  {id:105,name:"Fuego Interior - Retiro",lat:-32.97,lng:-68.73,cat:"hotel",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:106,name:"Centro de Negocios AFF.",lat:45.46,lng:9.19,cat:"oficina",city:"Milán",country:"Italia",photos:[]},
+  {id:107,name:"Oficina de Galotti",lat:45.48,lng:9.21,cat:"oficina",city:"Milán",country:"Italia",photos:[]},
+  {id:108,name:"Microsoft Office",lat:47.64,lng:-122.13,cat:"oficina",city:"Redmond",country:"EE.UU.",photos:[]},
+  {id:109,name:"Oficina de Vía Della Chiu",lat:43.77,lng:11.25,cat:"oficina",city:"Florencia",country:"Italia",photos:[]},
+  {id:110,name:"Vía Fara, 26",lat:45.50,lng:9.23,cat:"oficina",city:"Milán",country:"Italia",photos:[]},
+  {id:111,name:"Oficina de Caldera",lat:-33.41,lng:-70.59,cat:"oficina",city:"Santiago",country:"Chile",photos:[]},
+  {id:112,name:"Vestíbulo de First Atla.",lat:33.77,lng:-84.41,cat:"oficina",city:"Atlanta",country:"EE.UU.",photos:[]},
+  {id:113,name:"Vittotio Emanuele",lat:45.44,lng:9.15,cat:"oficina",city:"Milán",country:"Italia",photos:[]},
+  {id:114,name:"Oficina de Cardano",lat:45.42,lng:9.17,cat:"oficina",city:"Milán",country:"Italia",photos:[]},
+  {id:115,name:"Sede de los Buzones",lat:45.54,lng:9.25,cat:"oficina",city:"Milán",country:"Italia",photos:[]},
+  {id:116,name:"Edificio Bollate",lat:45.54,lng:9.12,cat:"oficina",city:"Bollate",country:"Italia",photos:[]},
+  {id:117,name:"Edificio Milanfiori",lat:45.41,lng:9.14,cat:"oficina",city:"Assago",country:"Italia",photos:[]},
+  {id:118,name:"Pintura Kelly Brothers",lat:40.73,lng:-74.03,cat:"oficina",city:"Nueva York",country:"EE.UU.",photos:[]},
+  {id:119,name:"Vicepresidente de Camza",lat:45.56,lng:9.27,cat:"oficina",city:"Milán",country:"Italia",photos:[]},
+  {id:120,name:"Competición de Marrak.",lat:31.63,lng:-8.01,cat:"hotel",city:"Marrakech",country:"Marruecos",photos:[]},
+  {id:121,name:"Doble Tree de Hilton Mil.",lat:45.49,lng:9.20,cat:"hotel",city:"Milán",country:"Italia",photos:[]},
+  {id:122,name:"Hotel Best Western",lat:41.92,lng:12.52,cat:"hotel",city:"Roma",country:"Italia",photos:[]},
+  {id:123,name:"Hotel Carmine Courtyard",lat:41.88,lng:12.46,cat:"hotel",city:"Roma",country:"Italia",photos:[]},
+  {id:124,name:"Casa Padri Stimmatini",lat:45.43,lng:9.18,cat:"hotel",city:"Milán",country:"Italia",photos:[]},
+  {id:125,name:"Hotel Verde Oliva",lat:38.11,lng:13.36,cat:"hotel",city:"Palermo",country:"Italia",photos:[]},
+  {id:126,name:"Express Airport Inn",lat:33.79,lng:-84.43,cat:"hotel",city:"Atlanta",country:"EE.UU.",photos:[]},
+  {id:127,name:"Hotel Resort Budva",lat:42.29,lng:18.84,cat:"hotel",city:"Budva",country:"Montenegro",photos:[]},
+  {id:128,name:"Apartamento Trastevere",lat:41.88,lng:12.47,cat:"hotel",city:"Roma",country:"Italia",photos:[]},
+  {id:129,name:"Hotel Ashburn - Londres",lat:51.49,lng:-0.19,cat:"hotel",city:"Londres",country:"Reino Unido",photos:[]},
+  {id:130,name:"Centro Metropolitano",lat:45.47,lng:9.22,cat:"comercial",city:"Milán",country:"Italia",photos:[]},
+  {id:131,name:"Centro Comercial Le Ba.",lat:48.83,lng:2.33,cat:"comercial",city:"París",country:"Francia",photos:[]},
+  {id:132,name:"Centro Comercial Grossetto",lat:42.76,lng:11.11,cat:"comercial",city:"Grosseto",country:"Italia",photos:[]},
+  {id:133,name:"Lacadeus - Compras",lat:48.87,lng:2.37,cat:"comercial",city:"París",country:"Francia",photos:[]},
+  {id:134,name:"Paseo de los Trapenses",lat:-33.43,lng:-70.61,cat:"comercial",city:"Santiago",country:"Chile",photos:[]},
+  {id:135,name:"Competición Centro Co.",lat:41.94,lng:12.54,cat:"comercial",city:"Roma",country:"Italia",photos:[]},
+  {id:136,name:"Centro Comercial Bara.",lat:41.38,lng:2.17,cat:"comercial",city:"Barcelona",country:"España",photos:[]},
+  {id:137,name:"Centro Comercial Lecce",lat:40.35,lng:18.17,cat:"comercial",city:"Lecce",country:"Italia",photos:[]},
+  {id:138,name:"Centro Comercial Misti.",lat:-16.35,lng:-71.53,cat:"comercial",city:"Arequipa",country:"Perú",photos:[]},
+  {id:139,name:"Tienda Vodafone",lat:51.53,lng:-0.17,cat:"comercial",city:"Londres",country:"Reino Unido",photos:[]},
+  {id:140,name:"Suelo Retail - NYC 128 W.",lat:40.75,lng:-74.05,cat:"comercial",city:"Nueva York",country:"EE.UU.",photos:[]},
+  {id:141,name:"La Tienda de Empanadas",lat:-32.97,lng:-68.71,cat:"gastronomia",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:142,name:"Nespresso Café - París",lat:48.89,lng:2.39,cat:"gastronomia",city:"París",country:"Francia",photos:[]},
+  {id:143,name:"Concurso de Café - Hosp.",lat:45.58,lng:9.29,cat:"gastronomia",city:"Milán",country:"Italia",photos:[]},
+  {id:144,name:"Carnes de Calidad",lat:-32.99,lng:-68.69,cat:"gastronomia",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:145,name:"Concurso de Paradas",lat:40.46,lng:-3.74,cat:"gastronomia",city:"Madrid",country:"España",photos:[]},
+  {id:146,name:"Puente de Laglacerie",lat:48.91,lng:2.41,cat:"gastronomia",city:"París",country:"Francia",photos:[]},
+  {id:147,name:"Galería de Arte - Hotel",lat:45.60,lng:9.31,cat:"cultural",city:"Milán",country:"Italia",photos:[]},
+  {id:148,name:"Centro Urbano de Laina.",lat:-33.01,lng:-68.67,cat:"cultural",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:149,name:"Renovación y Conserva.",lat:41.96,lng:12.56,cat:"cultural",city:"Roma",country:"Italia",photos:[]},
+  {id:150,name:"Concurso para la Const.",lat:45.62,lng:9.33,cat:"cultural",city:"Milán",country:"Italia",photos:[]},
+  {id:151,name:"Biblioteca Arese",lat:45.55,lng:9.08,cat:"cultural",city:"Arese",country:"Italia",photos:[]},
+  {id:152,name:"Loteo Coquimbito",lat:-32.89,lng:-68.93,cat:"cultural",city:"Coquimbito",country:"Argentina",photos:[]},
+  {id:153,name:"Plaza 9 de Julio",lat:-32.91,lng:-68.95,cat:"cultural",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:154,name:"Servicios de Musicotera.",lat:-32.93,lng:-68.97,cat:"cultural",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:155,name:"UNCuyo - Jardín de Infan.",lat:-32.89,lng:-68.99,cat:"educacion",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:156,name:"Escuela L.W. Beecher",lat:41.85,lng:-87.65,cat:"educacion",city:"Chicago",country:"EE.UU.",photos:[]},
+  {id:157,name:"UNCuyo - Construcción",lat:-32.87,lng:-69.01,cat:"educacion",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:158,name:"UNCuyo - Escuela Secun.",lat:-32.85,lng:-69.03,cat:"educacion",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:159,name:"Director de Construcci.",lat:-32.83,lng:-69.05,cat:"educacion",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:160,name:"Docente en Universidad",lat:-32.81,lng:-69.07,cat:"educacion",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:161,name:"Profesor en la Universi.",lat:-32.79,lng:-69.09,cat:"educacion",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:162,name:"Profesor en UNCuyo",lat:-32.77,lng:-69.11,cat:"educacion",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:163,name:"Profesor del Escuela S.",lat:-32.75,lng:-69.13,cat:"educacion",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:164,name:"Proyecto Industrial",lat:-32.73,lng:-69.15,cat:"industrial",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:165,name:"Bodega Caroglio",lat:-32.71,lng:-69.17,cat:"industrial",city:"Mendoza",country:"Argentina",photos:[]},
+  {id:166,name:"Alfa Romeo",lat:45.64,lng:9.35,cat:"industrial",city:"Milán",country:"Italia",photos:[]},
+  {id:167,name:"Iglesia Bautista Colosa",lat:33.79,lng:-84.45,cat:"iglesia",city:"Atlanta",country:"EE.UU.",photos:[]},
+  {id:168,name:"Iglesia del Rey Emmanuel",lat:33.73,lng:-84.35,cat:"iglesia",city:"Atlanta",country:"EE.UU.",photos:[]},
+  {id:169,name:"Centro Cristiano del Va.",lat:-33.03,lng:-68.65,cat:"iglesia",city:"Mendoza",country:"Argentina",photos:[]},
+];
+
+let nextId = 170;
+let activeFilters = new Set(Object.keys(CATS));
+let activeLocations = new Set(); // empty = all locations shown
+let selectedId = null;
+let searchQ = '';
+let locSearchQ = '';
+let editingId = null;
+let modalPhotos = [];
+let modalVideos = []; // [{type:'youtube'|'vimeo'|'file', src, ytId}]
+let highlightedCountry = null;
+let emojiTarget = null;
+let countryFeatures = [];
+
+// ── D3 MAP SETUP ──
+const mapEl = document.getElementById('map');
+const svg = d3.select('#mapsvg');
+const g = svg.append('g');
+
+const projection = d3.geoNaturalEarth1()
+  .scale(153)
+  .translate([mapEl.clientWidth / 2, mapEl.clientHeight / 2]);
+
+const path = d3.geoPath().projection(projection);
+
+let currentZoomK = 1;
+let currentTransform = d3.zoomIdentity;
+
+const zoom = d3.zoom()
+  .scaleExtent([0.5, 200])
+  .on('zoom', e => {
+    currentTransform = e.transform;
+    currentZoomK = e.transform.k;
+    g.attr('transform', e.transform);
+    gLabels.attr('transform', e.transform);
+    const s = 1 / currentZoomK;
+    g.selectAll('.marker').attr('transform', function() {
+      const pos = this.__pinPos__;
+      if (!pos) return null;
+      return `translate(${pos[0]},${pos[1]}) scale(${s})`;
+    });
+    // Keep label at constant screen size
+    if (highlightedCountry) countryLabelEl.attr('font-size', `${9 / currentZoomK}px`);
+  });
+svg.call(zoom);
+
+// ── APPLY MAP COLORS ──
+function applyMapColors() {
+  document.getElementById('map').style.background = MAP_COLORS.ocean;
+  svg.selectAll('.country')
+    .attr('fill', d => {
+      const name = d.properties && d.properties.name;
+      return (highlightedCountry && name === highlightedCountry)
+        ? MAP_COLORS.highlight : MAP_COLORS.land;
+    })
+    .attr('stroke', MAP_COLORS.border)
+    .attr('stroke-width', 0.4);
+}
+
+// ── SVG LAYER ORDER (bottom→top): countries → labels → markers ──
+const gLabels = svg.append('g').attr('id','g-labels');
+// markers group 'g' is already appended at the top of the script
+
+// ── LOAD COUNTRIES (50m = has .properties.name) ──
+fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json')
+  .then(r => r.json())
+  .then(world => {
+    countryFeatures = topojson.feature(world, world.objects.countries).features;
+    g.selectAll('.country')
+      .data(countryFeatures)
+      .enter().append('path')
+      .attr('class', 'country')
+      .attr('d', path)
+      .attr('fill', MAP_COLORS.land)
+      .attr('stroke', MAP_COLORS.border)
+      .attr('stroke-width', 0.4);
+    applyMapColors();
+    renderMarkers();
+  });
+
+// ── COUNTRY LABEL — single element, shown only when project is selected ──
+const countryLabelEl = gLabels.append('text')
+  .attr('class','lbl-country')
+  .attr('display','none')
+  .attr('text-anchor','middle')
+  .attr('dominant-baseline','middle')
+  .style('font-family','DM Sans, sans-serif')
+  .style('font-weight','400')
+  .style('fill','rgba(255,255,255,0.75)')
+  .style('letter-spacing','0.08em')
+  .style('text-transform','uppercase')
+  .style('pointer-events','none');
+
+function showCountryLabel(countryNEName) {
+  if (!countryFeatures.length) return;
+  const feat = countryFeatures.find(f => f.properties?.name === countryNEName);
+  if (!feat) { countryLabelEl.attr('display','none'); return; }
+  const c = path.centroid(feat);
+  if (!c || !isFinite(c[0])) { countryLabelEl.attr('display','none'); return; }
+  // Font size: constant 9px on screen = 9/k in map units
+  const screenPx = 9;
+  countryLabelEl
+    .attr('display', null)
+    .attr('transform', `translate(${c[0]},${c[1]})`)
+    .attr('font-size', `${screenPx / currentZoomK}px`)
+    .text(countryNEName);
+}
+
+function hideCountryLabel() {
+  countryLabelEl.attr('display','none');
+}
+
+// ── COUNTRY HIGHLIGHT ──
+const COUNTRY_NE = {
+  'EE.UU.':'United States of America','Argentina':'Argentina','Italia':'Italy',
+  'Francia':'France','Suecia':'Sweden','Chile':'Chile','Reino Unido':'United Kingdom',
+  'Grecia':'Greece','Líbano':'Lebanon','Brasil':'Brazil','México':'Mexico',
+  'España':'Spain','Israel':'Israel','Suiza':'Switzerland','Alemania':'Germany',
+  'Australia':'Australia','EAU':'United Arab Emirates','Irlanda':'Ireland',
+  'Montenegro':'Montenegro','Marruecos':'Morocco','Perú':'Peru',
+  'Gibraltar':'United Kingdom','Italia':'Italy','Rusia':'Russia','China':'China',
+  'Japón':'Japan','India':'India','Canadá':'Canada','Polonia':'Poland',
+};
+
+function highlightCountryByName(countryStr) {
+  const neName = COUNTRY_NE[countryStr] || countryStr;
+  highlightedCountry = neName;
+  svg.selectAll('.country')
+    .attr('fill', d => {
+      const name = d.properties && d.properties.name;
+      return name === neName ? MAP_COLORS.highlight : MAP_COLORS.land;
+    })
+    .attr('stroke', MAP_COLORS.border)
+    .attr('stroke-width', 0.4);
+  // Show country name label over the highlighted country
+  showCountryLabel(neName);
+}
+
+function clearHighlight() {
+  highlightedCountry = null;
+  svg.selectAll('.country')
+    .attr('fill', MAP_COLORS.land)
+    .attr('stroke', MAP_COLORS.border)
+    .attr('stroke-width', 0.4);
+  hideCountryLabel();
+}
+
+// ── PIN SHAPE — 3D glossy teardrop matching reference image ──
+// The pin has: thick colored ring, large white inner circle, thin pointed tail
+function drawPin(parent, R, color, isSelected) {
+  const ringW  = R * 0.28;   // ring thickness
+  const outer  = R;          // outer radius of the head circle
+  const inner  = R - ringW;  // inner white circle radius
+  const tailH  = R * 1.55;   // how far the tail goes below center
+  const tailW  = R * 0.22;   // half-width of tail at widest point
+
+  // ── Drop shadow ──
+  parent.append('ellipse')
+    .attr('cx', R * 0.12).attr('cy', R * 0.2)
+    .attr('rx', outer * 0.85).attr('ry', outer * 0.18)
+    .attr('fill', 'rgba(0,0,0,0.28)')
+    .attr('filter', 'url(#blur)')
+    .style('pointer-events','none');
+
+  // ── Tail (pointed teardrop base) ──
+  // Bezier from bottom-left of circle to tip, back up to bottom-right
+  const tailPath = `
+    M ${-tailW}, ${outer * 0.6}
+    C ${-tailW * 0.6}, ${outer * 0.9}  0, ${tailH * 0.85}  0, ${tailH}
+    C 0, ${tailH * 0.85}  ${tailW * 0.6}, ${outer * 0.9}  ${tailW}, ${outer * 0.6}
+    Z`;
+
+  parent.append('path')
+    .attr('d', tailPath)
+    .attr('fill', color)
+    .style('pointer-events','none');
+
+  // ── Outer colored circle (ring) ──
+  parent.append('circle')
+    .attr('cx', 0).attr('cy', 0)
+    .attr('r', outer)
+    .attr('fill', color)
+    .attr('stroke', isSelected ? 'white' : 'none')
+    .attr('stroke-width', isSelected ? 1.5 : 0)
+    .style('pointer-events','none');
+
+  // ── Glossy highlight on ring (top-left arc) ──
+  parent.append('path')
+    .attr('d', `M ${-outer*0.7},${-outer*0.3}
+      A ${outer},${outer} 0 0,1 ${outer*0.3},${-outer*0.7}`)
+    .attr('stroke', 'rgba(255,255,255,0.35)')
+    .attr('stroke-width', ringW * 0.9)
+    .attr('fill', 'none')
+    .attr('stroke-linecap', 'round')
+    .style('pointer-events','none');
+
+  // ── Inner white circle ──
+  parent.append('circle')
+    .attr('cx', 0).attr('cy', 0)
+    .attr('r', inner)
+    .attr('fill', 'white')
+    .style('pointer-events','none');
+
+  // ── Inner subtle gradient (gives the 3D concave look) ──
+  parent.append('circle')
+    .attr('cx', inner * 0.15).attr('cy', inner * 0.15)
+    .attr('r', inner * 0.75)
+    .attr('fill', 'rgba(220,230,240,0.45)')
+    .style('pointer-events','none');
+
+  // ── Small specular glint ──
+  parent.append('circle')
+    .attr('cx', -inner * 0.28).attr('cy', -inner * 0.3)
+    .attr('r', inner * 0.18)
+    .attr('fill', 'rgba(255,255,255,0.7)')
+    .style('pointer-events','none');
+}
+
+function renderMarkers() {
+  // Ensure SVG has blur filter for shadow
+  let defs = svg.select('defs');
+  if (defs.empty()) defs = svg.append('defs');
+  if (defs.select('#blur').empty()) {
+    defs.append('filter').attr('id','blur')
+      .append('feGaussianBlur').attr('stdDeviation', 1.5);
+  }
+
+  g.selectAll('.marker').remove();
+  const vis = getVisible();
+  const s = 1 / currentZoomK; // pins shrink as map zooms in
+
+  vis.forEach(p => {
+    const cat = CATS[p.cat];
+    if (!cat) return;
+    const coords = projection([p.lng, p.lat]);
+    if (!coords) return;
+    const [x, y] = coords;
+    const isSel = selectedId === p.id;
+
+    // Selected pin is 30% larger than regular
+    const baseR = 7;
+    const R = isSel ? baseR * 1.3 : baseR;
+
+    const mg = g.append('g')
+      .attr('class', 'marker')
+      // position at map coord, then apply inverse zoom scale so pin stays constant screen size
+      .attr('transform', `translate(${x},${y}) scale(${s})`);
+
+    // Store position for zoom handler to re-apply transform
+    mg.node().__pinPos__ = [x, y];
+
+    // Selection glow ring (behind everything)
+    if (isSel) {
+      mg.append('circle')
+        .attr('cx', 0).attr('cy', 0)
+        .attr('r', R * 1.8)
+        .attr('fill', cat.color)
+        .attr('opacity', 0.18)
+        .style('pointer-events','none');
+    }
+
+    // Draw the 3D pin
+    drawPin(mg, R, cat.color, isSel);
+
+    // Large invisible hit circle — centered on pin head, prevents hover jitter
+    mg.append('circle')
+      .attr('cx', 0).attr('cy', 0)
+      .attr('r', R + 6)
+      .attr('fill', 'transparent')
+      .style('cursor', 'pointer')
+      .on('mouseenter', function(event) {
+        const tip = document.getElementById('tip');
+        const rect = mapEl.getBoundingClientRect();
+        document.getElementById('tip-name').textContent = p.name;
+        document.getElementById('tip-loc').textContent = `${p.city}, ${p.country}`;
+        const tc = document.getElementById('tip-cat');
+        tc.textContent = cat.label;
+        tc.style.background = cat.bg;
+        tc.style.color = cat.color;
+        tip.style.left = (event.clientX - rect.left + 16) + 'px';
+        tip.style.top  = (event.clientY - rect.top - 75) + 'px';
+        tip.style.opacity = '1';
+      })
+      .on('mouseleave', () => {
+        setTimeout(() => { document.getElementById('tip').style.opacity = '0'; }, 60);
+      })
+      .on('click', () => selectProject(p.id));
+  });
+}
+
+// ── VISIBLE PROJECTS ──
+function getVisible() {
+  return PROJECTS.filter(p => {
+    if (!activeFilters.has(p.cat)) return false;
+    // Location filter: if any active, project must match one
+    if (activeLocations.size > 0) {
+      const key = `${p.city}||${p.country}`;
+      const countryKey = `__country__${p.country}`;
+      if (!activeLocations.has(key) && !activeLocations.has(countryKey)) return false;
+    }
+    if (searchQ) {
+      const q = searchQ.toLowerCase();
+      return p.name.toLowerCase().includes(q) || p.city.toLowerCase().includes(q) || p.country.toLowerCase().includes(q);
+    }
+    return true;
+  });
+}
+
+function getCountriesCount() {
+  return new Set(getVisible().map(p => p.country)).size;
+}
+
+// ── LOCATION FILTER — dropdown autocomplete ──
+function getLocationTree() {
+  const tree = {};
+  PROJECTS.forEach(p => {
+    if (!tree[p.country]) tree[p.country] = new Set();
+    tree[p.country].add(p.city);
+  });
+  return tree;
+}
+
+function renderLocFilter() {
+  renderLocTags();
+  // Dropdown is rendered on input, not on every render
+}
+
+function renderLocTags() {
+  const wrap = document.getElementById('loc-tags');
+  wrap.innerHTML = '';
+  activeLocations.forEach(key => {
+    const tag = document.createElement('div');
+    tag.className = 'loc-tag';
+    const isCountry = key.startsWith('__country__');
+    const label = isCountry ? '🌍 ' + key.replace('__country__','') : key.split('||')[0];
+    tag.innerHTML = `${label}<span>✕</span>`;
+    tag.onclick = () => { activeLocations.delete(key); render(); };
+    wrap.appendChild(tag);
+  });
+}
+
+function renderDropdown(q) {
+  const dd = document.getElementById('loc-dropdown');
+  dd.innerHTML = '';
+  const tree = getLocationTree();
+  const countries = Object.keys(tree).sort((a,b)=>a.localeCompare(b));
+  let hasResults = false;
+
+  countries.forEach(country => {
+    const cities = [...tree[country]].sort((a,b)=>a.localeCompare(b));
+    const countryKey = `__country__${country}`;
+    const matchCountry = country.toLowerCase().includes(q);
+    const matchCities = cities.filter(c => c.toLowerCase().includes(q) || country.toLowerCase().includes(q));
+    if (!matchCountry && matchCities.length === 0) return;
+    hasResults = true;
+
+    // Country row
+    const crow = document.createElement('div');
+    crow.className = 'dd-country-item' + (activeLocations.has(countryKey) ? ' on' : '');
+    crow.innerHTML = `🌍 ${country} <small style="color:#bbb;font-weight:400">${cities.length} ciudades</small>`;
+    crow.onclick = () => {
+      if (activeLocations.has(countryKey)) { activeLocations.delete(countryKey); cities.forEach(c=>activeLocations.delete(`${c}||${country}`)); }
+      else { cities.forEach(c=>activeLocations.delete(`${c}||${country}`)); activeLocations.add(countryKey); }
+      document.getElementById('loc-search').value = '';
+      document.getElementById('loc-search-clear').classList.remove('show');
+      dd.classList.remove('open');
+      render();
+    };
+    dd.appendChild(crow);
+
+    // City rows
+    matchCities.forEach(city => {
+      const cityKey = `${city}||${country}`;
+      const row = document.createElement('div');
+      row.className = 'dd-item' + (activeLocations.has(cityKey) ? ' on' : '');
+      row.textContent = city;
+      row.onclick = () => {
+        activeLocations.delete(countryKey);
+        if (activeLocations.has(cityKey)) activeLocations.delete(cityKey);
+        else activeLocations.add(cityKey);
+        document.getElementById('loc-search').value = '';
+        document.getElementById('loc-search-clear').classList.remove('show');
+        dd.classList.remove('open');
+        render();
+      };
+      dd.appendChild(row);
+    });
+  });
+
+  if (!hasResults) {
+    dd.innerHTML = '<div style="padding:12px;font-size:12px;color:#bbb;text-align:center">Sin resultados</div>';
+  }
+  dd.classList.toggle('open', q.length > 0);
+}
+
+document.getElementById('loc-search').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase().trim();
+  locSearchQ = q;
+  document.getElementById('loc-search-clear').classList.toggle('show', q.length > 0);
+  renderDropdown(q);
+});
+
+document.getElementById('loc-search').addEventListener('focus', e => {
+  const q = e.target.value.toLowerCase().trim();
+  if (q) renderDropdown(q);
+});
+
+document.getElementById('loc-search-clear').onclick = () => {
+  document.getElementById('loc-search').value = '';
+  locSearchQ = '';
+  document.getElementById('loc-search-clear').classList.remove('show');
+  document.getElementById('loc-dropdown').classList.remove('open');
+};
+
+// Close dropdown on outside click
+document.addEventListener('click', e => {
+  if (!document.getElementById('loc-filt').contains(e.target)) {
+    document.getElementById('loc-dropdown').classList.remove('open');
+  }
+});
+
+document.getElementById('loc-clear-btn').onclick = () => {
+  activeLocations.clear();
+  locSearchQ = '';
+  document.getElementById('loc-search').value = '';
+  document.getElementById('loc-search-clear').classList.remove('show');
+  document.getElementById('loc-dropdown').classList.remove('open');
+  render();
+};
+function renderFilters() {
+  const wrap = document.getElementById('fwrap');
+  wrap.innerHTML = '';
+  Object.entries(CATS).forEach(([key, cat]) => {
+    const on = activeFilters.has(key);
+    const btn = document.createElement('button');
+    btn.className = 'fb' + (on ? ' on' : '');
+    btn.style.color = on ? cat.color : '';
+    btn.innerHTML = `<span class="fd" style="background:${cat.color}"></span>${cat.e} ${cat.label}`;
+    btn.onclick = () => {
+      if (activeFilters.has(key)) { if (activeFilters.size > 1) activeFilters.delete(key); }
+      else activeFilters.add(key);
+      render();
+    };
+    wrap.appendChild(btn);
+  });
+}
+
+// ── LIST ──
+function renderList() {
+  const list = document.getElementById('plist');
+  const noRes = document.getElementById('no-res');
+  const vis = getVisible();
+  document.getElementById('sn-total').textContent = vis.length;
+  document.getElementById('sn-ctry').textContent = getCountriesCount();
+  document.getElementById('sn-cats').textContent = activeFilters.size;
+  document.getElementById('cc-n').textContent = getCountriesCount();
+
+  if (!vis.length) { list.innerHTML = ''; noRes.style.display = 'block'; return; }
+  noRes.style.display = 'none';
+
+  const groups = {};
+  vis.forEach(p => { if (!groups[p.cat]) groups[p.cat] = []; groups[p.cat].push(p); });
+
+  list.innerHTML = '';
+  Object.entries(groups).forEach(([cat, items]) => {
+    if (!CATS[cat]) return;
+    const gh = document.createElement('div');
+    gh.className = 'gh';
+    gh.textContent = `${CATS[cat].e} ${CATS[cat].label} (${items.length})`;
+    list.appendChild(gh);
+    items.forEach(p => {
+      const el = document.createElement('div');
+      el.className = 'pi' + (selectedId === p.id ? ' sel' : '');
+      el.innerHTML = `
+        <div class="pi-ico" style="background:${CATS[p.cat]?.bg||'#eee'}">${CATS[p.cat]?.e||'📌'}</div>
+        <div class="pi-info">
+          <div class="pi-name">${p.name}</div>
+          <div class="pi-loc">📍 ${p.city}, ${p.country}</div>
+        </div>
+        <button class="pi-edit">✏️</button>`;
+      el.querySelector('.pi-info').onclick = () => selectProject(p.id);
+      el.querySelector('.pi-edit').onclick = e => { e.stopPropagation(); openProjectModal(p.id); };
+      list.appendChild(el);
+    });
+  });
+}
+
+// ── SELECT PROJECT ──
+function selectProject(id) {
+  selectedId = id;
+  const p = PROJECTS.find(x => x.id === id);
+  if (!p) return;
+  const cat = CATS[p.cat] || { label:'?', bg:'#eee', color:'#999', e:'📌' };
+
+  // Highlight country on map
+  highlightCountryByName(p.country);
+
+  document.getElementById('d-ico').style.background = cat.bg;
+  document.getElementById('d-ico').textContent = cat.e;
+  document.getElementById('d-name').textContent = p.name;
+  document.getElementById('d-loc').textContent = `📍 ${p.city}, ${p.country}`;
+  const tag = document.getElementById('d-tag');
+  tag.textContent = cat.label; tag.style.background = cat.bg; tag.style.color = cat.color;
+  document.getElementById('d-cat').textContent = cat.label;
+  document.getElementById('d-city').textContent = p.city;
+  document.getElementById('d-country').textContent = p.country;
+
+  // Description
+  const descEl = document.getElementById('d-desc');
+  if (p.desc && p.desc.trim()) {
+    descEl.textContent = p.desc;
+    descEl.style.display = 'block';
+  } else {
+    descEl.style.display = 'none';
+  }
+
+  const photosEl = document.getElementById('det-photos');
+  photosEl.innerHTML = '';
+  const photoList = p.photos || [];
+  photoList.forEach((src, idx) => {
+    const img = document.createElement('img');
+    img.src = src; img.className = 'det-photo';
+    img.onclick = () => openLightbox(photoList, idx);
+    photosEl.appendChild(img);
+  });
+  const addPh = document.createElement('button');
+  addPh.className = 'det-add-photo';
+  addPh.innerHTML = '＋<span style="font-size:9px;margin-top:2px">foto</span>';
+  addPh.onclick = () => openProjectModal(id);
+  photosEl.appendChild(addPh);
+
+  // Videos in detail panel
+  const videosEl = document.getElementById('det-videos');
+  videosEl.innerHTML = '';
+  (p.videos || []).forEach(v => {
+    const wrap = document.createElement('div');
+    wrap.className = 'det-vid';
+    const playIcon = `<div class="vplay"><svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="12" fill="rgba(0,0,0,0.6)"/><polygon points="10,8 17,12 10,16" fill="white"/></svg></div>`;
+    if (v.type === 'youtube') {
+      wrap.innerHTML = `<img src="${ytThumb(v.ytId)}" alt="">${playIcon}`;
+      wrap.onclick = () => openVideoLightbox(v);
+    } else if (v.type === 'vimeo') {
+      wrap.innerHTML = `<div style="width:100%;height:100%;background:#1ab7ea;display:flex;align-items:center;justify-content:center;font-size:11px;color:white;font-weight:600">Vimeo</div>${playIcon}`;
+      wrap.onclick = () => openVideoLightbox(v);
+    } else {
+      wrap.innerHTML = `<video src="${v.src}"></video>${playIcon}`;
+      wrap.onclick = () => openVideoLightbox(v);
+    }
+    videosEl.appendChild(wrap);
+  });
+
+  document.getElementById('det').classList.add('open');
+  // Google Maps link — uses exact coordinates for precision
+  const gmapsLink = document.getElementById('d-gmaps');
+  gmapsLink.href = `https://www.google.com/maps?q=${p.lat},${p.lng}&z=17`;
+  render();
+  setTimeout(() => document.querySelector('.pi.sel')?.scrollIntoView({behavior:'smooth',block:'nearest'}), 60);
+}
+
+document.getElementById('det-x').onclick = () => {
+  selectedId = null;
+  clearHighlight();
+  document.getElementById('det').classList.remove('open');
+  render();
+};
+document.getElementById('d-edit-btn').onclick = () => { if (selectedId) openProjectModal(selectedId); };
+
+// ── SEARCH ──
+document.getElementById('searchbox').addEventListener('input', e => { searchQ = e.target.value; render(); });
+
+// ── PROJECT MODAL ──
+function buildCatSelect() {
+  const sel = document.getElementById('m-cat');
+  sel.innerHTML = '';
+  Object.entries(CATS).forEach(([key, cat]) => {
+    const opt = document.createElement('option');
+    opt.value = key; opt.textContent = `${cat.e} ${cat.label}`;
+    sel.appendChild(opt);
+  });
+}
+
+function openProjectModal(id) {
+  const isNew = id === null;
+  editingId = id;
+  buildCatSelect();
+  const p = isNew ? {name:'',city:'',country:'',lat:'',lng:'',cat:'residencia',desc:'',photos:[]} : PROJECTS.find(x => x.id === id);
+  document.getElementById('modal-title').textContent = isNew ? 'Nuevo proyecto' : 'Editar proyecto';
+  document.getElementById('m-name').value = p.name;
+  document.getElementById('m-city').value = p.city;
+  document.getElementById('m-country').value = p.country;
+  document.getElementById('m-lat').value = p.lat;
+  document.getElementById('m-lng').value = p.lng;
+  document.getElementById('m-cat').value = p.cat;
+  document.getElementById('m-desc').value = p.desc || '';
+  modalPhotos = [...(p.photos||[])];
+  modalVideos = [...(p.videos||[])];
+  document.getElementById('btn-delete').style.display = isNew ? 'none' : '';
+  renderModalPhotos();
+  renderModalVideos();
+  document.getElementById('m-vid-url').value = '';
+  document.getElementById('modal-bg').classList.add('open');
+}
+
+function renderModalPhotos() {
+  const el = document.getElementById('modal-photos');
+  el.innerHTML = '';
+  modalPhotos.forEach((src, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'mp-thumb';
+    wrap.innerHTML = `<img src="${src}"><button class="mp-del">✕</button>`;
+    wrap.querySelector('.mp-del').onclick = () => { modalPhotos.splice(i,1); renderModalPhotos(); };
+    el.appendChild(wrap);
+  });
+  const addBtn = document.createElement('button');
+  addBtn.className = 'mp-add'; addBtn.innerHTML = '＋';
+  addBtn.onclick = () => document.getElementById('photo-input').click();
+  el.appendChild(addBtn);
+}
+
+// ── VIDEO HELPERS ──
+function parseVideoUrl(url) {
+  // YouTube
+  const yt = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  if (yt) return { type:'youtube', src: url, ytId: yt[1] };
+  // Vimeo
+  const vm = url.match(/vimeo\.com\/(\d+)/);
+  if (vm) return { type:'vimeo', src: url, vmId: vm[1] };
+  return null;
+}
+
+function ytThumb(ytId) {
+  return `https://img.youtube.com/vi/${ytId}/mqdefault.jpg`;
+}
+
+function renderModalVideos() {
+  const el = document.getElementById('modal-videos');
+  el.innerHTML = '';
+  el.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px';
+  modalVideos.forEach((v, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'mv-thumb';
+    wrap.style.cursor = 'default';
+
+    if (v.type === 'youtube') {
+      wrap.innerHTML = `<img class="mv-yt-img" src="${ytThumb(v.ytId)}" alt="">
+        <div class="mv-play-badge"><svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="12" fill="rgba(255,0,0,0.85)"/><polygon points="10,8 17,12 10,16" fill="white"/></svg></div>
+        <button class="mv-del">✕</button>`;
+    } else if (v.type === 'vimeo') {
+      wrap.innerHTML = `<div style="width:100%;height:100%;background:#1ab7ea;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:10px;color:white;font-weight:600">Vimeo</div>
+        <div class="mv-play-badge"><svg viewBox="0 0 24 24" width="20" height="20"><polygon points="10,8 17,12 10,16" fill="white"/></svg></div>
+        <button class="mv-del">✕</button>`;
+    } else {
+      wrap.innerHTML = `<video src="${v.src}" style="pointer-events:none"></video>
+        <div class="mv-play-badge"><svg viewBox="0 0 24 24" width="20" height="20"><polygon points="10,8 17,12 10,16" fill="white"/></svg></div>
+        <button class="mv-del">✕</button>`;
+    }
+    wrap.querySelector('.mv-del').onclick = () => { modalVideos.splice(i,1); renderModalVideos(); };
+    el.appendChild(wrap);
+  });
+}
+
+// Add video by URL
+document.getElementById('m-vid-add-url').onclick = () => {
+  const raw = document.getElementById('m-vid-url').value.trim();
+  if (!raw) return;
+  const parsed = parseVideoUrl(raw);
+  if (!parsed) { alert('Link no reconocido. Usá un link de YouTube o Vimeo.'); return; }
+  modalVideos.push(parsed);
+  document.getElementById('m-vid-url').value = '';
+  renderModalVideos();
+};
+
+document.getElementById('m-vid-url').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('m-vid-add-url').click();
+});
+
+// Add video by file upload
+document.getElementById('m-vid-file-btn').onclick = () => document.getElementById('vid-file-input').click();
+document.getElementById('vid-file-input').addEventListener('change', e => {
+  const files = Array.from(e.target.files);
+  let loaded = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      modalVideos.push({ type:'file', src: ev.target.result });
+      loaded++;
+      if (loaded === files.length) renderModalVideos();
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value = '';
+});
+
+function closeProjectModal() {
+  document.getElementById('modal-bg').classList.remove('open');
+  const d = document.getElementById('btn-delete');
+  d.textContent = '🗑 Eliminar'; d.dataset.confirm=''; d.style.cssText='';
+  editingId = null;
+}
+document.getElementById('modal-x').onclick = closeProjectModal;
+document.getElementById('btn-cancel').onclick = closeProjectModal;
+document.getElementById('modal-bg').addEventListener('click', e => { if(e.target===document.getElementById('modal-bg')) closeProjectModal(); });
+
+document.getElementById('btn-save').onclick = async () => {
+  const name=document.getElementById('m-name').value.trim();
+  const city=document.getElementById('m-city').value.trim();
+  const country=document.getElementById('m-country').value.trim();
+  const lat=parseFloat(document.getElementById('m-lat').value);
+  const lng=parseFloat(document.getElementById('m-lng').value);
+  const cat=document.getElementById('m-cat').value;
+  const desc=document.getElementById('m-desc').value.trim();
+  if(!name||!city||!country||isNaN(lat)||isNaN(lng)){alert('Completá todos los campos.');return;}
+  if(editingId===null){
+    PROJECTS.push({id:nextId++,name,city,country,lat,lng,cat,desc,photos:[...modalPhotos],videos:[...modalVideos]});
+  } else {
+    const p=PROJECTS.find(x=>x.id===editingId);
+    Object.assign(p,{name,city,country,lat,lng,cat,desc,photos:[...modalPhotos],videos:[...modalVideos]});
+    if(selectedId===editingId) selectProject(editingId);
+  }
+  window.PROJECTS = PROJECTS;
+  closeProjectModal();
+  render();
+  await window.saveToStorage();
+};
+
+document.getElementById('btn-delete').onclick = function() {
+  if(this.dataset.confirm!=='1'){
+    this.textContent='⚠️ Confirmar eliminación';
+    this.dataset.confirm='1';
+    this.style.background='#c0392b'; this.style.color='#fff'; this.style.borderColor='#c0392b';
+    setTimeout(()=>{ this.textContent='🗑 Eliminar'; this.dataset.confirm=''; this.style.cssText=''; },3000);
+    return;
+  }
+  PROJECTS=PROJECTS.filter(x=>x.id!==editingId);
+  if(selectedId===editingId){selectedId=null;clearHighlight();document.getElementById('det').classList.remove('open');}
+  closeProjectModal(); render();
+};
+
+document.getElementById('add-btn').onclick = () => openProjectModal(null);
+document.getElementById('sb-add-btn').onclick = () => openProjectModal(null);
+
+// ── MAP SETTINGS ──
+document.getElementById('map-settings-btn').onclick = () => {
+  // Sync inputs to current colors
+  document.getElementById('c-ocean').value = MAP_COLORS.ocean;
+  document.getElementById('c-land').value = MAP_COLORS.land;
+  document.getElementById('c-highlight').value = MAP_COLORS.highlight;
+  document.getElementById('c-border').value = MAP_COLORS.border;
+  document.getElementById('mset-bg').classList.add('open');
+};
+document.getElementById('mset-x').onclick = () => document.getElementById('mset-bg').classList.remove('open');
+document.getElementById('mset-bg').addEventListener('click', e => { if(e.target===document.getElementById('mset-bg')) document.getElementById('mset-bg').classList.remove('open'); });
+document.getElementById('mset-close').onclick = async () => { document.getElementById('mset-bg').classList.remove('open'); window.MAP_COLORS = MAP_COLORS; await window.saveToStorage(); };
+
+['c-ocean','c-land','c-highlight','c-border'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    MAP_COLORS.ocean = document.getElementById('c-ocean').value;
+    MAP_COLORS.land = document.getElementById('c-land').value;
+    MAP_COLORS.highlight = document.getElementById('c-highlight').value;
+    MAP_COLORS.border = document.getElementById('c-border').value;
+    applyMapColors();
+  });
+});
+
+document.getElementById('mset-reset').onclick = () => {
+  MAP_COLORS = {ocean:'#d0d0d0',land:'#3a3a3a',highlight:'#6a6a6a',border:'#555555'};
+  applyMapColors();
+};
+
+// ── CATEGORY EDITOR ──
+const EMOJIS = ['🏠','🏡','🏘','🏗','🏛','🏟','🏢','🏣','🏤','🏥','🏦','🏨','🏩','🏪','🏫','🏬','🏭','🏯','🏰','🗼','🗽','⛪','🕌','🕍','🕋','⛩','🛕','🏆','🥇','🎖','🏅','🎗','🎓','📚','🔬','🔭','⚗️','🎨','🎭','🎬','🎤','🎵','🛍','🛒','☕','🍽','🍷','🌿','🌳','🌱','🏖','🏔','🚀','✈️','🚂','🛳','🚁','⛽','🔧','🔨','⚙️','🔩','🏗','🧱','🪵','🏋','⚽','🎾','🏊','🎸','🎹','🎺','🪗','🧩','🎲','📿','💎','🪙','🏺'];
+
+document.getElementById('open-cat-editor').onclick = () => {
+  renderCatEditor();
+  document.getElementById('cat-bg').classList.add('open');
+};
+document.getElementById('cat-x').onclick = () => { document.getElementById('cat-bg').classList.remove('open'); document.getElementById('emoji-picker-area').style.display='none'; };
+document.getElementById('cat-bg').addEventListener('click', e => { if(e.target===document.getElementById('cat-bg')){ document.getElementById('cat-bg').classList.remove('open'); document.getElementById('emoji-picker-area').style.display='none'; } });
+
+function hexToRgb(hex) {
+  const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},0.15)`;
+}
+
+function renderCatEditor() {
+  const container = document.getElementById('cat-rows');
+  container.innerHTML = '';
+  Object.entries(CATS).forEach(([key, cat]) => {
+    const row = document.createElement('div');
+    row.className = 'cat-row';
+    row.dataset.key = key;
+    row.innerHTML = `
+      <div class="cat-preview" style="background:${cat.bg}">${cat.e}</div>
+      <input type="text" class="ce-label" value="${cat.label}" placeholder="Nombre…" style="flex:1">
+      <button class="emoji-pick ce-emoji" title="Cambiar ícono">${cat.e}</button>
+      <input type="color" class="ce-color" value="${cat.color}" title="Color principal">`;
+    row.querySelector('.ce-color').addEventListener('input', function() {
+      row.querySelector('.cat-preview').style.background = hexToRgb(this.value);
+    });
+    row.querySelector('.ce-emoji').onclick = () => toggleEmojiPicker(key, row.querySelector('.ce-emoji'));
+    container.appendChild(row);
+  });
+}
+
+function toggleEmojiPicker(catKey, targetBtn) {
+  const area = document.getElementById('emoji-picker-area');
+  if (emojiTarget === catKey && area.style.display === 'flex') {
+    area.style.display = 'none'; emojiTarget = null; return;
+  }
+  emojiTarget = catKey;
+  area.style.display = 'flex';
+  area.style.flexWrap = 'wrap';
+  area.style.gap = '6px';
+  area.style.padding = '10px';
+  area.style.background = '#fafafa';
+  area.style.borderRadius = '8px';
+  area.style.maxHeight = '150px';
+  area.style.overflowY = 'auto';
+  area.style.marginBottom = '10px';
+  area.innerHTML = '';
+  EMOJIS.forEach(em => {
+    const btn = document.createElement('button');
+    btn.className = 'eg-btn'; btn.textContent = em;
+    btn.onclick = () => {
+      const row = document.querySelector(`.cat-row[data-key="${catKey}"]`);
+      if (row) {
+        row.querySelector('.cat-preview').textContent = em;
+        row.querySelector('.ce-emoji').textContent = em;
+      }
+      area.style.display = 'none'; emojiTarget = null;
+    };
+    area.appendChild(btn);
+  });
+  // Insert after the row
+  const row = document.querySelector(`.cat-row[data-key="${catKey}"]`);
+  if (row && row.nextSibling) row.parentNode.insertBefore(area, row.nextSibling);
+  else document.getElementById('cat-rows').appendChild(area);
+}
+
+document.getElementById('cat-save').onclick = () => {
+  document.querySelectorAll('.cat-row').forEach(row => {
+    const key = row.dataset.key;
+    if (!CATS[key]) return;
+    const label = row.querySelector('.ce-label').value.trim() || CATS[key].label;
+    const color = row.querySelector('.ce-color').value;
+    const e = row.querySelector('.cat-preview').textContent.trim();
+    const r=parseInt(color.slice(1,3),16), gv=parseInt(color.slice(3,5),16), b=parseInt(color.slice(5,7),16);
+    const bg = `rgba(${r},${gv},${b},0.12)`;
+    CATS[key] = { label, color, bg, e };
+  });
+  document.getElementById('cat-bg').classList.remove('open');
+  document.getElementById('emoji-picker-area').style.display = 'none';
+  render();
+  if (selectedId) selectProject(selectedId);
+  window.CATS = CATS;
+  window.saveToStorage();
+};
+
+// ── ZOOM ──
+document.getElementById('zin').onclick = () => svg.transition().duration(300).call(zoom.scaleBy, 1.5);
+document.getElementById('zout').onclick = () => svg.transition().duration(300).call(zoom.scaleBy, 0.67);
+
+// ── VIDEO LIGHTBOX ──
+function openVideoLightbox(v) {
+  const lb = document.getElementById('vid-lb');
+  // Clear previous content (keep close button)
+  lb.querySelectorAll('video, iframe').forEach(el => el.remove());
+  if (v.type === 'youtube') {
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://www.youtube.com/embed/${v.ytId}?autoplay=1`;
+    iframe.allow = 'autoplay; fullscreen';
+    lb.appendChild(iframe);
+  } else if (v.type === 'vimeo') {
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://player.vimeo.com/video/${v.vmId}?autoplay=1`;
+    iframe.allow = 'autoplay; fullscreen';
+    lb.appendChild(iframe);
+  } else {
+    const video = document.createElement('video');
+    video.src = v.src; video.controls = true; video.autoplay = true;
+    lb.appendChild(video);
+  }
+  lb.classList.add('open');
+}
+function closeVideoLightbox() {
+  const lb = document.getElementById('vid-lb');
+  lb.classList.remove('open');
+  lb.querySelectorAll('video, iframe').forEach(el => el.remove());
+}
+document.getElementById('vl-x').onclick = closeVideoLightbox;
+document.getElementById('vid-lb').addEventListener('click', e => {
+  if (e.target === document.getElementById('vid-lb')) closeVideoLightbox();
+});
+
+// ── PHOTO LIGHTBOX with carousel ──
+let _lbPhotos = [];
+let _lbIndex  = 0;
+
+function openLightbox(photos, startIndex = 0) {
+  _lbPhotos = Array.isArray(photos) ? photos : [photos];
+  _lbIndex  = startIndex;
+  renderLightbox();
+  document.getElementById('lightbox').classList.add('open');
+}
+
+function renderLightbox() {
+  document.getElementById('lb-img').src = _lbPhotos[_lbIndex];
+  document.getElementById('lb-counter').textContent =
+    _lbPhotos.length > 1 ? `${_lbIndex + 1} / ${_lbPhotos.length}` : '';
+  document.getElementById('lb-prev').classList.toggle('hidden', _lbIndex === 0);
+  document.getElementById('lb-next').classList.toggle('hidden', _lbIndex === _lbPhotos.length - 1);
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+
+document.getElementById('lb-x').onclick    = closeLightbox;
+document.getElementById('lb-prev').onclick = () => { if (_lbIndex > 0) { _lbIndex--; renderLightbox(); } };
+document.getElementById('lb-next').onclick = () => { if (_lbIndex < _lbPhotos.length - 1) { _lbIndex++; renderLightbox(); } };
+
+document.getElementById('lightbox').addEventListener('click', e => {
+  if (e.target === document.getElementById('lightbox') || e.target === document.getElementById('lb-content'))
+    closeLightbox();
+});
+
+// Keyboard navigation
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('lightbox').classList.contains('open')) return;
+  if (e.key === 'ArrowRight' && _lbIndex < _lbPhotos.length - 1) { _lbIndex++; renderLightbox(); }
+  if (e.key === 'ArrowLeft'  && _lbIndex > 0)                     { _lbIndex--; renderLightbox(); }
+  if (e.key === 'Escape') closeLightbox();
+});
+
+// Touch/swipe support
+let _touchStartX = 0;
+document.getElementById('lightbox').addEventListener('touchstart', e => { _touchStartX = e.touches[0].clientX; }, {passive:true});
+document.getElementById('lightbox').addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - _touchStartX;
+  if (Math.abs(dx) < 40) return;
+  if (dx < 0 && _lbIndex < _lbPhotos.length - 1) { _lbIndex++; renderLightbox(); }
+  if (dx > 0 && _lbIndex > 0)                     { _lbIndex--; renderLightbox(); }
+}, {passive:true});
+
+// ── PHOTO FILE INPUT (missing handler — this was the bug) ──
+document.getElementById('photo-input').addEventListener('change', e => {
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+  let loaded = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      modalPhotos.push(ev.target.result);
+      loaded++;
+      if (loaded === files.length) renderModalPhotos();
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value = '';
+});
+
+
+// ── FIREBASE FIRESTORE — sincronización en la nube ──
+// Los datos se guardan en Firebase y son visibles para TODOS los visitantes
+
+// Save indicator UI (definido antes de Firebase para usarlo durante la carga)
+function showSaveIndicator(msg = '✓ Guardado') {
+  let ind = document.getElementById('save-ind');
+  if (!ind) {
+    ind = document.createElement('div');
+    ind.id = 'save-ind';
+    ind.style.cssText = `
+      position:fixed;bottom:20px;right:20px;z-index:9999;
+      background:#111;color:#fff;font-size:11px;font-family:'DM Sans',sans-serif;
+      padding:7px 14px;border-radius:20px;opacity:0;
+      transition:opacity .25s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.3);
+    `;
+    document.body.appendChild(ind);
+  }
+  ind.textContent = msg;
+  ind.style.opacity = '1';
+  clearTimeout(ind._t);
+  ind._t = setTimeout(() => { ind.style.opacity = '0'; }, 2500);
+}
+
+// Render con datos iniciales mientras carga Firebase
+function render() { renderFilters(); renderLocFilter(); renderList(); renderMarkers(); }
+render();
+
+
+// Mantiene sincronizadas las variables reales del mapa con los datos que llegan de Firebase.
+// Sin esto, Firebase podía cargar datos en window.PROJECTS, pero la interfaz seguía dibujando PROJECTS local.
+function syncCloudState(state = {}) {
+  if (Array.isArray(state.projects)) PROJECTS = state.projects;
+  if (state.cats) CATS = state.cats;
+  if (state.mapColors) MAP_COLORS = state.mapColors;
+  if (Number.isFinite(state.nextId)) nextId = state.nextId;
+  activeFilters = new Set(Object.keys(CATS));
+
+  window.PROJECTS = PROJECTS;
+  window.CATS = CATS;
+  window.MAP_COLORS = MAP_COLORS;
+  window.activeFilters = activeFilters;
+  window.nextId = nextId;
+}
+
+function getPortfolioState() {
+  return { projects: PROJECTS, cats: CATS, mapColors: MAP_COLORS, nextId };
+}
+
+// Firebase SDK via ESM
+const _fbScript = document.createElement('script');
+_fbScript.type = 'module';
+_fbScript.textContent = `
+  import { initializeApp }
+    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getFirestore, collection, doc, setDoc, deleteDoc, getDocs, getDoc }
+    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyD06lTXKzg9uTU5eaEXZGQSAX8X96jLN1M",
+    authDomain: "mza-portfolio-e34fe.firebaseapp.com",
+    projectId: "mza-portfolio-e34fe",
+    storageBucket: "mza-portfolio-e34fe.firebasestorage.app",
+    messagingSenderId: "469223239088",
+    appId: "1:469223239088:web:1a8e21120731af65d2ba75"
+  };
+
+  const fbApp = initializeApp(firebaseConfig);
+  const db    = getFirestore(fbApp);
+
+  // Exponer al scope global
+  window._fb = { db, collection, doc, setDoc, deleteDoc, getDocs, getDoc };
+
+  // ── CARGAR DATOS AL INICIO ──
+  async function loadFromFirebase() {
+    try {
+      window.showSaveIndicator('⏳ Cargando datos…');
+
+      let loadedCats = null;
+      let loadedMapColors = null;
+      let loadedProjects = null;
+      let loadedNextId = null;
+
+      // Config (categorías + colores)
+      const cfgSnap = await getDoc(doc(db, 'config', 'main'));
+      if (cfgSnap.exists()) {
+        const cfg = cfgSnap.data();
+        if (cfg.cats) loadedCats = cfg.cats;
+        if (cfg.mapColors) loadedMapColors = cfg.mapColors;
+      }
+
+      // Proyectos
+      const snap = await getDocs(collection(db, 'projects'));
+      if (!snap.empty) {
+        loadedProjects = [];
+        snap.forEach(d => loadedProjects.push(d.data()));
+        loadedProjects.sort((a,b) => a.id - b.id);
+        loadedNextId = Math.max(...loadedProjects.map(p => p.id), 169) + 1;
+      } else {
+        // Primera vez: subir los proyectos por defecto
+        window.showSaveIndicator('⏳ Subiendo datos iniciales a la nube…');
+        const state = window.getPortfolioState();
+        loadedProjects = state.projects;
+        loadedCats = loadedCats || state.cats;
+        loadedMapColors = loadedMapColors || state.mapColors;
+        loadedNextId = state.nextId;
+        await Promise.all(loadedProjects.map(p =>
+          setDoc(doc(db, 'projects', String(p.id)), p)
+        ));
+        await setDoc(doc(db, 'config', 'main'), {
+          cats: loadedCats,
+          mapColors: loadedMapColors
+        });
+        window.showSaveIndicator('✓ Datos iniciales subidos');
+      }
+
+      window.syncCloudState({
+        projects: loadedProjects,
+        cats: loadedCats,
+        mapColors: loadedMapColors,
+        nextId: loadedNextId
+      });
+      window.render();
+      window.applyMapColors();
+      window.showSaveIndicator('✓ Datos cargados desde la nube');
+    } catch(e) {
+      console.warn('Firebase load error:', e);
+      window.showSaveIndicator('⚠️ Sin conexión — usando datos locales');
+      window.render();
+    }
+  }
+
+  loadFromFirebase();
+
+  // ── GUARDAR ──
+  window.saveToStorage = async function() {
+    if (!window._fb) return;
+    try {
+      const { db, doc, setDoc } = window._fb;
+      const state = window.getPortfolioState();
+      await Promise.all(state.projects.map(p =>
+        setDoc(doc(db, 'projects', String(p.id)), p)
+      ));
+      await setDoc(doc(db, 'config', 'main'), {
+        cats: state.cats,
+        mapColors: state.mapColors
+      });
+      window.syncCloudState(state);
+      window.showSaveIndicator('✓ Guardado en la nube ☁️');
+    } catch(e) {
+      console.error('Firebase save error:', e);
+      window.showSaveIndicator('⚠️ Error al guardar');
+    }
+  };
+
+  // ── ELIMINAR ──
+  window.deleteFromStorage = async function(id) {
+    if (!window._fb) return;
+    try {
+      const { db, doc, deleteDoc } = window._fb;
+      await deleteDoc(doc(db, 'projects', String(id)));
+    } catch(e) { console.warn('Firebase delete error:', e); }
+  };
+`;
+document.head.appendChild(_fbScript);
+
+// Fallbacks no-op hasta que Firebase cargue
+window.saveToStorage    = async () => {};
+window.deleteFromStorage = async () => {};
+window.PROJECTS = PROJECTS;
+window.CATS     = CATS;
+window.MAP_COLORS = MAP_COLORS;
+window.activeFilters = activeFilters;
+window.nextId   = nextId;
+window.render   = render;
+window.applyMapColors = applyMapColors;
+window.showSaveIndicator = showSaveIndicator;
+window.syncCloudState = syncCloudState;
+window.getPortfolioState = getPortfolioState;
+
+// Hook botón eliminar
+document.getElementById('btn-delete').onclick = async function() {
+  if (this.dataset.confirm !== '1') {
+    this.textContent = '⚠️ Confirmar eliminación';
+    this.dataset.confirm = '1';
+    this.style.background = '#c0392b'; this.style.color = '#fff'; this.style.borderColor = '#c0392b';
+    setTimeout(() => {
+      this.textContent = '🗑 Eliminar'; this.dataset.confirm = '';
+      this.style.background = this.style.color = this.style.borderColor = '';
+    }, 3000);
+    return;
+  }
+  const idToDel = editingId;
+  PROJECTS = PROJECTS.filter(x => x.id !== idToDel);
+  window.PROJECTS = PROJECTS;
+  if (selectedId === idToDel) {
+    selectedId = null; clearHighlight();
+    document.getElementById('det').classList.remove('open');
+  }
+  await window.deleteFromStorage(idToDel);
+  closeProjectModal(); render();
+};
+
+window.addEventListener('resize', () => {
+  projection.translate([mapEl.clientWidth/2, mapEl.clientHeight/2]);
+  svg.selectAll('.country').attr('d', path);
+  if (highlightedCountry) showCountryLabel(highlightedCountry);
+  renderMarkers();
+});
+</script>
+</body>
+</html>
