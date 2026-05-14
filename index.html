@@ -1186,11 +1186,25 @@ function openProjectModal(id) {
 function renderModalPhotos() {
   const el = document.getElementById('modal-photos');
   el.innerHTML = '';
-  modalPhotos.forEach((src, i) => {
+  modalPhotos.forEach((photo, i) => {
+    const src = typeof photo === 'string' ? photo : photo.previewUrl;
     const wrap = document.createElement('div');
     wrap.className = 'mp-thumb';
-    wrap.innerHTML = `<img src="${src}"><button class="mp-del">✕</button>`;
-    wrap.querySelector('.mp-del').onclick = () => { modalPhotos.splice(i,1); renderModalPhotos(); };
+
+    const img = document.createElement('img');
+    img.src = src;
+    wrap.appendChild(img);
+
+    const del = document.createElement('button');
+    del.className = 'mp-del';
+    del.textContent = '✕';
+    del.onclick = () => {
+      const removed = modalPhotos.splice(i,1)[0];
+      if (removed && removed.previewUrl) URL.revokeObjectURL(removed.previewUrl);
+      renderModalPhotos();
+    };
+    wrap.appendChild(del);
+
     el.appendChild(wrap);
   });
   const addBtn = document.createElement('button');
@@ -1284,6 +1298,7 @@ document.getElementById('btn-cancel').onclick = closeProjectModal;
 document.getElementById('modal-bg').addEventListener('click', e => { if(e.target===document.getElementById('modal-bg')) closeProjectModal(); });
 
 document.getElementById('btn-save').onclick = async () => {
+  const saveBtn = document.getElementById('btn-save');
   const name=document.getElementById('m-name').value.trim();
   const city=document.getElementById('m-city').value.trim();
   const country=document.getElementById('m-country').value.trim();
@@ -1292,17 +1307,38 @@ document.getElementById('btn-save').onclick = async () => {
   const cat=document.getElementById('m-cat').value;
   const desc=document.getElementById('m-desc').value.trim();
   if(!name||!city||!country||isNaN(lat)||isNaN(lng)){alert('Completá todos los campos.');return;}
-  if(editingId===null){
-    PROJECTS.push({id:nextId++,name,city,country,lat,lng,cat,desc,photos:[...modalPhotos],videos:[...modalVideos]});
-  } else {
-    const p=PROJECTS.find(x=>x.id===editingId);
-    Object.assign(p,{name,city,country,lat,lng,cat,desc,photos:[...modalPhotos],videos:[...modalVideos]});
-    if(selectedId===editingId) selectProject(editingId);
+
+  const projectId = editingId === null ? nextId : editingId;
+
+  saveBtn.disabled = true;
+  const originalText = saveBtn.textContent;
+  saveBtn.textContent = 'Guardando…';
+
+  try {
+    const savedPhotoUrls = await uploadModalPhotos(projectId);
+
+    if(editingId===null){
+      PROJECTS.push({id:projectId,name,city,country,lat,lng,cat,desc,photos:savedPhotoUrls,videos:[...modalVideos]});
+      nextId = projectId + 1;
+    } else {
+      const p=PROJECTS.find(x=>x.id===editingId);
+      Object.assign(p,{name,city,country,lat,lng,cat,desc,photos:savedPhotoUrls,videos:[...modalVideos]});
+      if(selectedId===editingId) selectProject(editingId);
+    }
+
+    window.PROJECTS = PROJECTS;
+    window.nextId = nextId;
+    closeProjectModal();
+    render();
+    await window.saveToStorage();
+  } catch (e) {
+    console.error('Error al guardar fotos:', e);
+    window.showSaveIndicator('⚠️ Error al subir fotos');
+    alert('No se pudieron guardar las fotos. Revisá que Firebase Storage esté activado y que las reglas permitan escritura.');
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = originalText;
   }
-  window.PROJECTS = PROJECTS;
-  closeProjectModal();
-  render();
-  await window.saveToStorage();
 };
 
 document.getElementById('btn-delete').onclick = function() {
@@ -1524,22 +1560,49 @@ document.getElementById('lightbox').addEventListener('touchend', e => {
   if (dx > 0 && _lbIndex > 0)                     { _lbIndex--; renderLightbox(); }
 }, {passive:true});
 
-// ── PHOTO FILE INPUT (missing handler — this was the bug) ──
+// ── PHOTO FILE INPUT ──
+// Las fotos nuevas se previsualizan localmente y se suben a Firebase Storage al guardar.
+// Firestore guarda solamente las URLs de descarga, no el archivo en Base64.
 document.getElementById('photo-input').addEventListener('change', e => {
-  const files = Array.from(e.target.files);
+  const files = Array.from(e.target.files || []);
   if (!files.length) return;
-  let loaded = 0;
+
   files.forEach(file => {
-    const reader = new FileReader();
-    reader.onload = ev => {
-      modalPhotos.push(ev.target.result);
-      loaded++;
-      if (loaded === files.length) renderModalPhotos();
-    };
-    reader.readAsDataURL(file);
+    if (!file.type || !file.type.startsWith('image/')) return;
+    modalPhotos.push({
+      file,
+      name: file.name || 'foto.jpg',
+      previewUrl: URL.createObjectURL(file),
+      pendingUpload: true
+    });
   });
+
+  renderModalPhotos();
   e.target.value = '';
 });
+
+async function uploadModalPhotos(projectId) {
+  const savedPhotos = [];
+
+  for (const photo of modalPhotos) {
+    // Las fotos ya guardadas llegan como URL string desde Firestore.
+    if (typeof photo === 'string') {
+      savedPhotos.push(photo);
+      continue;
+    }
+
+    // Las fotos nuevas son objetos con File y se suben a Firebase Storage.
+    if (photo && photo.file) {
+      if (!window.uploadPhotoFile) throw new Error('Firebase Storage todavía no está listo.');
+      window.showSaveIndicator('⏳ Subiendo fotos…');
+      const url = await window.uploadPhotoFile(photo.file, projectId);
+      savedPhotos.push(url);
+      if (photo.previewUrl) URL.revokeObjectURL(photo.previewUrl);
+    }
+  }
+
+  return savedPhotos;
+}
 
 
 // ── FIREBASE FIRESTORE — sincronización en la nube ──
@@ -1598,6 +1661,8 @@ _fbScript.textContent = `
     from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
   import { getFirestore, collection, doc, setDoc, deleteDoc, getDocs, getDoc }
     from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+  import { getStorage, ref as storageRef, uploadBytes, getDownloadURL }
+    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 
   const firebaseConfig = {
     apiKey: "AIzaSyD06lTXKzg9uTU5eaEXZGQSAX8X96jLN1M",
@@ -1610,9 +1675,24 @@ _fbScript.textContent = `
 
   const fbApp = initializeApp(firebaseConfig);
   const db    = getFirestore(fbApp);
+  const storage = getStorage(fbApp);
+
+  function safeStorageName(name) {
+    return String(name || 'foto.jpg')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9._-]/g, '_');
+  }
 
   // Exponer al scope global
-  window._fb = { db, collection, doc, setDoc, deleteDoc, getDocs, getDoc };
+  window._fb = { db, collection, doc, setDoc, deleteDoc, getDocs, getDoc, storage, storageRef, uploadBytes, getDownloadURL };
+
+  window.uploadPhotoFile = async function(file, projectId) {
+    const safeName = safeStorageName(file.name);
+    const fullPath = 'project_photos/' + String(projectId) + '/' + Date.now() + '_' + safeName;
+    const imgRef = storageRef(storage, fullPath);
+    const snapshot = await uploadBytes(imgRef, file, { contentType: file.type || 'image/jpeg' });
+    return await getDownloadURL(snapshot.ref);
+  };
 
   // ── CARGAR DATOS AL INICIO ──
   async function loadFromFirebase() {
@@ -1710,6 +1790,7 @@ document.head.appendChild(_fbScript);
 // Fallbacks no-op hasta que Firebase cargue
 window.saveToStorage    = async () => {};
 window.deleteFromStorage = async () => {};
+window.uploadPhotoFile   = null;
 window.PROJECTS = PROJECTS;
 window.CATS     = CATS;
 window.MAP_COLORS = MAP_COLORS;
