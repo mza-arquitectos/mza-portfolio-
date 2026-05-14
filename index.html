@@ -1334,7 +1334,7 @@ document.getElementById('btn-save').onclick = async () => {
   } catch (e) {
     console.error('Error al guardar fotos:', e);
     window.showSaveIndicator('⚠️ Error al subir fotos');
-    alert('No se pudieron guardar las fotos. Revisá que Firebase Storage esté activado y que las reglas permitan escritura.');
+    alert('No se pudieron guardar las fotos. Revisá que el Cloud name y el Upload preset de Cloudinary sean correctos.');
   } finally {
     saveBtn.disabled = false;
     saveBtn.textContent = originalText;
@@ -1561,8 +1561,8 @@ document.getElementById('lightbox').addEventListener('touchend', e => {
 }, {passive:true});
 
 // ── PHOTO FILE INPUT ──
-// Las fotos nuevas se previsualizan localmente y se suben a Firebase Storage al guardar.
-// Firestore guarda solamente las URLs de descarga, no el archivo en Base64.
+// Las fotos nuevas se previsualizan localmente y se suben a Cloudinary al guardar.
+// Firestore guarda solamente las URLs seguras de Cloudinary, no el archivo en Base64.
 document.getElementById('photo-input').addEventListener('change', e => {
   const files = Array.from(e.target.files || []);
   if (!files.length) return;
@@ -1591,9 +1591,9 @@ async function uploadModalPhotos(projectId) {
       continue;
     }
 
-    // Las fotos nuevas son objetos con File y se suben a Firebase Storage.
+    // Las fotos nuevas son objetos con File y se suben a Cloudinary.
     if (photo && photo.file) {
-      if (!window.uploadPhotoFile) throw new Error('Firebase Storage todavía no está listo.');
+      if (!window.uploadPhotoFile) throw new Error('Cloudinary todavía no está listo.');
       window.showSaveIndicator('⏳ Subiendo fotos…');
       const url = await window.uploadPhotoFile(photo.file, projectId);
       savedPhotos.push(url);
@@ -1661,8 +1661,6 @@ _fbScript.textContent = `
     from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
   import { getFirestore, collection, doc, setDoc, deleteDoc, getDocs, getDoc }
     from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-  import { getStorage, ref as storageRef, uploadBytes, getDownloadURL }
-    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 
   const firebaseConfig = {
     apiKey: "AIzaSyD06lTXKzg9uTU5eaEXZGQSAX8X96jLN1M",
@@ -1675,23 +1673,33 @@ _fbScript.textContent = `
 
   const fbApp = initializeApp(firebaseConfig);
   const db    = getFirestore(fbApp);
-  const storage = getStorage(fbApp);
 
-  function safeStorageName(name) {
-    return String(name || 'foto.jpg')
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-zA-Z0-9._-]/g, '_');
-  }
+  // ── CLOUDINARY CONFIG ──
+  // Solo se usa Cloud name + unsigned upload preset. No uses API Secret en el HTML.
+  const CLOUDINARY_CLOUD_NAME = "dexOffimx";
+  const CLOUDINARY_UPLOAD_PRESET = "mza_unsigned";
 
   // Exponer al scope global
-  window._fb = { db, collection, doc, setDoc, deleteDoc, getDocs, getDoc, storage, storageRef, uploadBytes, getDownloadURL };
+  window._fb = { db, collection, doc, setDoc, deleteDoc, getDocs, getDoc };
 
   window.uploadPhotoFile = async function(file, projectId) {
-    const safeName = safeStorageName(file.name);
-    const fullPath = 'project_photos/' + String(projectId) + '/' + Date.now() + '_' + safeName;
-    const imgRef = storageRef(storage, fullPath);
-    const snapshot = await uploadBytes(imgRef, file, { contentType: file.type || 'image/jpeg' });
-    return await getDownloadURL(snapshot.ref);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+    formData.append('folder', 'mza-portfolio/' + String(projectId));
+
+    const response = await fetch(
+      'https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD_NAME + '/image/upload',
+      { method: 'POST', body: formData }
+    );
+
+    const result = await response.json();
+    if (!response.ok || !result.secure_url) {
+      console.error('Cloudinary upload error:', result);
+      throw new Error(result.error?.message || 'Error al subir imagen a Cloudinary');
+    }
+
+    return result.secure_url;
   };
 
   // ── CARGAR DATOS AL INICIO ──
