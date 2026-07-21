@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portafolio MZA Architects</title>
+<title>MZA Architects Portfolio</title>
 <!-- Versión pública solo lectura del portfolio. -->
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -281,10 +281,22 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:#111;overflow:
   #lb-prev{left:8px}#lb-next{right:8px}
 }
 
+
+/* ── LANGUAGE TOGGLE ── */
+.lang-toggle{display:flex;gap:8px;margin:0 0 12px 44px;align-items:center}
+.lang-toggle button{border:2px solid transparent;border-radius:999px;padding:6px 13px;font-size:10px;font-family:inherit;cursor:pointer;letter-spacing:.05em;transition:all .16s ease;font-weight:800;color:#fff;box-shadow:0 2px 7px rgba(0,0,0,.12);opacity:.55;filter:saturate(.85)}
+.lang-toggle button[data-lang="es"]{background:#0B6E8E;border-color:#0B6E8E}
+.lang-toggle button[data-lang="en"]{background:#D72626;border-color:#D72626}
+.lang-toggle button[data-lang="es"].on{background:#0089B5;border-color:#004F6E;opacity:1;filter:saturate(1.25);box-shadow:0 0 0 2px rgba(0,137,181,.18),0 6px 18px rgba(0,137,181,.42);transform:translateY(-1px) scale(1.04)}
+.lang-toggle button[data-lang="en"].on{background:#E32626;border-color:#9F1414;opacity:1;filter:saturate(1.25);box-shadow:0 0 0 2px rgba(227,38,38,.18),0 6px 18px rgba(227,38,38,.42);transform:translateY(-1px) scale(1.04)}
+.lang-toggle button:hover{opacity:1;filter:saturate(1.15);transform:translateY(-1px)}
+.lang-toggle button:focus-visible{outline:2px solid #111;outline-offset:2px}
+@media (max-width:768px){.lang-toggle{margin:0 0 12px 44px;gap:8px}.lang-toggle button{min-height:36px;padding:7px 14px;font-size:11px}}
+
 </style>
 </head>
 <body>
-<button id="mobile-menu-btn" type="button" aria-label="Abrir lista de proyectos" aria-expanded="false">☰</button>
+<button id="mobile-menu-btn" type="button" aria-label="Open project list" aria-expanded="false">☰</button>
 <div id="mobile-sb-overlay" aria-hidden="true"></div>
 <div id="app">
 
@@ -293,35 +305,39 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:#111;overflow:
   <div id="sb-top">
     <div class="brand">
       <div class="brand-logo">MZA</div>
-      <div><h1>Portafolio MZA</h1><p>Proyectos de arquitectura</p></div>
+      <div><h1>MZA Portfolio</h1><p>Architecture projects</p></div>
     </div>
-    <input id="searchbox" type="text" placeholder="Buscar proyecto o ciudad…">
+    <div id="lang-toggle" class="lang-toggle" aria-label="Language selector">
+      <button type="button" data-lang="es" title="Español">ES</button>
+      <button type="button" data-lang="en" title="English">EN</button>
+    </div>
+    <input id="searchbox" type="text" placeholder="Search project or city…">
     <div id="stats">
-      <div class="st"><div class="st-n" id="sn-total">0</div><div class="st-l">proyectos</div></div>
-      <div class="st"><div class="st-n" id="sn-ctry">0</div><div class="st-l">países</div></div>
-      <div class="st"><div class="st-n" id="sn-cats">0</div><div class="st-l">categorías</div></div>
+      <div class="st"><div class="st-n" id="sn-total">0</div><div class="st-l">projects</div></div>
+      <div class="st"><div class="st-n" id="sn-ctry">0</div><div class="st-l">countries</div></div>
+      <div class="st"><div class="st-n" id="sn-cats">0</div><div class="st-l">categories</div></div>
     </div>
   </div>
   <div id="filt">
     <div class="filt-head">
-      <label>Categorías</label>
+      <label>Categories</label>
     </div>
     <div id="fwrap"></div>
   </div>
   <div id="loc-filt">
     <div class="loc-filt-head">
-      <label>Localización</label>
-      <button class="loc-clear" id="loc-clear-btn">Limpiar</button>
+      <label>Location</label>
+      <button class="loc-clear" id="loc-clear-btn">Clear</button>
     </div>
     <div id="loc-search-wrap">
-      <input id="loc-search" type="text" placeholder="País o ciudad…" autocomplete="off">
+      <input id="loc-search" type="text" placeholder="Country or city…" autocomplete="off">
       <button id="loc-search-clear">✕</button>
       <div id="loc-dropdown"></div>
     </div>
     <div id="loc-tags"></div>
   </div>
   <div id="plist-wrap">
-    <div id="no-res">Sin resultados</div>
+    <div id="no-res">No results</div>
     <div id="plist"></div>
   </div>
 </div>
@@ -331,7 +347,7 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:#111;overflow:
   <svg id="mapsvg" xmlns="http://www.w3.org/2000/svg"></svg>
   <div id="tip"><div id="tip-name"></div><div id="tip-loc"></div><div id="tip-cat"></div></div>
   <div id="zctr"><button class="zb" id="zin">+</button><button class="zb" id="zout">−</button></div>
-  <div id="cc"><p>Países con proyectos</p><span id="cc-n">0</span></div>
+  <div id="cc"><p>Countries with projects</p><span id="cc-n">0</span></div>
 
   <!-- DETAIL -->
   <div id="det">
@@ -348,9 +364,9 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:#111;overflow:
     <div id="det-photos"></div>
     <div id="det-videos"></div>
     <div class="dgrid">
-      <div class="dc"><div class="dc-l">Categoría</div><div class="dc-v" id="d-cat"></div></div>
-      <div class="dc"><div class="dc-l">Ciudad</div><div class="dc-v" id="d-city"></div></div>
-      <div class="dc"><div class="dc-l">País</div><div class="dc-v" id="d-country"></div></div>
+      <div class="dc"><div class="dc-l">Category</div><div class="dc-v" id="d-cat"></div></div>
+      <div class="dc"><div class="dc-l">City</div><div class="dc-v" id="d-city"></div></div>
+      <div class="dc"><div class="dc-l">Country</div><div class="dc-v" id="d-country"></div></div>
     </div>
     <div style="display:flex;gap:8px;align-items:center;margin-top:2px">
       <a id="d-gmaps" href="#" target="_blank" rel="noopener"
@@ -359,7 +375,7 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:#111;overflow:
           <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#EA4335"/>
           <circle cx="12" cy="9" r="2.5" fill="white"/>
         </svg>
-        Ver en Maps
+        View on Maps
       </a>
     </div>
   </div>
@@ -567,6 +583,200 @@ let PROJECTS = [
   {id:169,name:"Centro Cristiano del Va.",lat:-33.03,lng:-68.65,cat:"iglesia",city:"Mendoza",country:"Argentina",photos:[]},
 ];
 
+
+// ── BILINGUAL PUBLIC LOCALIZATION ──
+// This public version keeps Firestore data unchanged and only translates visible interface labels.
+const UI_TEXT = {
+  es: {
+    mobileMenu: 'Abrir lista de proyectos',
+    title: 'Portafolio MZA',
+    subtitle: 'Proyectos de arquitectura',
+    searchPlaceholder: 'Buscar proyecto o ciudad…',
+    projects: 'proyectos',
+    countries: 'países',
+    categories: 'categorías',
+    categoriesLabel: 'Categorías',
+    locationLabel: 'Localización',
+    clear: 'Limpiar',
+    locPlaceholder: 'País o ciudad…',
+    noResults: 'Sin resultados',
+    countriesWithProjects: 'Países con proyectos',
+    category: 'Categoría',
+    city: 'Ciudad',
+    country: 'País',
+    viewMaps: 'Ver en Maps',
+    cities: 'ciudades',
+    loading: '⏳ Cargando portfolio…',
+    loaded: '✓ Portfolio cargado',
+    cloudError: '⚠️ No se pudo cargar la nube'
+  },
+  en: {
+    mobileMenu: 'Open project list',
+    title: 'MZA Portfolio',
+    subtitle: 'Architecture projects',
+    searchPlaceholder: 'Search project or city…',
+    projects: 'projects',
+    countries: 'countries',
+    categories: 'categories',
+    categoriesLabel: 'Categories',
+    locationLabel: 'Location',
+    clear: 'Clear',
+    locPlaceholder: 'Country or city…',
+    noResults: 'No results',
+    countriesWithProjects: 'Countries with projects',
+    category: 'Category',
+    city: 'City',
+    country: 'Country',
+    viewMaps: 'View on Maps',
+    cities: 'cities',
+    loading: '⏳ Loading portfolio…',
+    loaded: '✓ Portfolio loaded',
+    cloudError: '⚠️ Cloud data could not be loaded'
+  }
+};
+
+const CATEGORY_LABELS = {
+  es: {
+    residencia: 'Residencia', concurso: 'Concurso', oficina: 'Oficina', hotel: 'Hotel',
+    comercial: 'Comercial', gastronomia: 'Gastronomía', cultural: 'Cultural',
+    educacion: 'Educación', industrial: 'Industrial', iglesia: 'Iglesia'
+  },
+  en: {
+    residencia: 'Residential', concurso: 'Competition', oficina: 'Office', hotel: 'Hotel',
+    comercial: 'Commercial', gastronomia: 'Hospitality', cultural: 'Cultural',
+    educacion: 'Education', industrial: 'Industrial', iglesia: 'Church'
+  }
+};
+
+const COUNTRY_LABELS_EN = {
+  'EE.UU.': 'USA', 'Estados Unidos': 'USA', 'Estados Unidos de América': 'USA',
+  'Argentina': 'Argentina', 'Italia': 'Italy', 'Francia': 'France', 'Suecia': 'Sweden',
+  'Chile': 'Chile', 'Reino Unido': 'United Kingdom', 'Grecia': 'Greece', 'Líbano': 'Lebanon',
+  'Brasil': 'Brazil', 'México': 'Mexico', 'España': 'Spain', 'Israel': 'Israel',
+  'Suiza': 'Switzerland', 'Alemania': 'Germany', 'Australia': 'Australia', 'EAU': 'UAE',
+  'Irlanda': 'Ireland', 'Montenegro': 'Montenegro', 'Marruecos': 'Morocco', 'Perú': 'Peru',
+  'Gibraltar': 'Gibraltar', 'Rusia': 'Russia', 'China': 'China', 'Japón': 'Japan',
+  'India': 'India', 'Canadá': 'Canada', 'Polonia': 'Poland', 'Dinamarca': 'Denmark',
+  'Dinamarca': 'Denmark'
+};
+
+const COUNTRY_LABELS_ES = Object.fromEntries(Object.entries(COUNTRY_LABELS_EN).map(([es,en]) => [en, es]));
+COUNTRY_LABELS_ES['USA'] = 'EE.UU.';
+COUNTRY_LABELS_ES['United States'] = 'EE.UU.';
+COUNTRY_LABELS_ES['United States of America'] = 'EE.UU.';
+COUNTRY_LABELS_ES['UAE'] = 'EAU';
+
+const CITY_LABELS_EN = {
+  'Nueva York': 'New York', 'Ciudad de México': 'Mexico City', 'París': 'Paris',
+  'Milán': 'Milan', 'Estocolmo': 'Stockholm', 'Londres': 'London', 'Zúrich': 'Zurich',
+  'Múnich': 'Munich', 'Génova': 'Genoa', 'Bolonia': 'Bologna', 'Florencia': 'Florence',
+  'Roma': 'Rome', 'Córdoba': 'Cordoba', 'Sídney': 'Sydney', 'Sidney': 'Sydney',
+  'Marrakech': 'Marrakech', 'Santiago de Compostela': 'Santiago de Compostela',
+  'Copenhague': 'Copenhagen', 'Xīnluó District': 'Xinluo District'
+};
+const CITY_LABELS_ES = Object.fromEntries(Object.entries(CITY_LABELS_EN).map(([es,en]) => [en, es]));
+CITY_LABELS_ES['New York'] = 'Nueva York';
+CITY_LABELS_ES['Mexico City'] = 'Ciudad de México';
+CITY_LABELS_ES['Milan'] = 'Milán';
+CITY_LABELS_ES['Paris'] = 'París';
+CITY_LABELS_ES['London'] = 'Londres';
+CITY_LABELS_ES['Copenhagen'] = 'Copenhague';
+
+let currentLang = localStorage.getItem('mzaPortfolioLang') || 'en';
+if (!['es','en'].includes(currentLang)) currentLang = 'en';
+
+function t(key) {
+  return UI_TEXT[currentLang]?.[key] || UI_TEXT.en[key] || key;
+}
+
+function catLabel(key) {
+  return CATEGORY_LABELS[currentLang]?.[key] || CATS[key]?.label || key;
+}
+
+function displayCountry(country) {
+  if (currentLang === 'en') return COUNTRY_LABELS_EN[country] || country;
+  return COUNTRY_LABELS_ES[country] || country;
+}
+
+function displayCity(city) {
+  if (currentLang === 'en') return CITY_LABELS_EN[city] || city;
+  return CITY_LABELS_ES[city] || city;
+}
+
+function displayLocation(p) {
+  return `${displayCity(p.city)}, ${displayCountry(p.country)}`;
+}
+
+function normalizeText(value) {
+  return String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function applyStaticTranslations() {
+  const brandTitle = document.querySelector('.brand h1');
+  const brandSubtitle = document.querySelector('.brand p');
+  if (brandTitle) brandTitle.textContent = t('title');
+  if (brandSubtitle) brandSubtitle.textContent = t('subtitle');
+
+  const searchbox = document.getElementById('searchbox');
+  if (searchbox) searchbox.placeholder = t('searchPlaceholder');
+  const locSearch = document.getElementById('loc-search');
+  if (locSearch) locSearch.placeholder = t('locPlaceholder');
+  const locClear = document.getElementById('loc-clear-btn');
+  if (locClear) locClear.textContent = t('clear');
+  const noRes = document.getElementById('no-res');
+  if (noRes) noRes.textContent = t('noResults');
+
+  const labels = document.querySelectorAll('.st-l');
+  if (labels[0]) labels[0].textContent = t('projects');
+  if (labels[1]) labels[1].textContent = t('countries');
+  if (labels[2]) labels[2].textContent = t('categories');
+
+  const filtLabel = document.querySelector('#filt .filt-head label');
+  if (filtLabel) filtLabel.textContent = t('categoriesLabel');
+  const locLabel = document.querySelector('#loc-filt .loc-filt-head label');
+  if (locLabel) locLabel.textContent = t('locationLabel');
+  const ccLabel = document.querySelector('#cc p');
+  if (ccLabel) ccLabel.textContent = t('countriesWithProjects');
+
+  const dcLabels = document.querySelectorAll('.dc-l');
+  if (dcLabels[0]) dcLabels[0].textContent = t('category');
+  if (dcLabels[1]) dcLabels[1].textContent = t('city');
+  if (dcLabels[2]) dcLabels[2].textContent = t('country');
+
+  const gmaps = document.getElementById('d-gmaps');
+  if (gmaps) {
+    const svgMarkup = gmaps.querySelector('svg')?.outerHTML || '';
+    gmaps.innerHTML = `${svgMarkup}${t('viewMaps')}`;
+  }
+
+  const mobileBtn = document.getElementById('mobile-menu-btn');
+  if (mobileBtn) mobileBtn.setAttribute('aria-label', t('mobileMenu'));
+
+  document.documentElement.lang = currentLang;
+  document.querySelectorAll('#lang-toggle button').forEach(btn => {
+    btn.classList.toggle('on', btn.dataset.lang === currentLang);
+    btn.setAttribute('aria-pressed', btn.dataset.lang === currentLang ? 'true' : 'false');
+  });
+}
+
+function setLanguage(lang) {
+  if (!['es','en'].includes(lang)) return;
+  currentLang = lang;
+  localStorage.setItem('mzaPortfolioLang', currentLang);
+  applyStaticTranslations();
+  render();
+  if (selectedId) selectProject(selectedId);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('#lang-toggle button').forEach(btn => {
+    btn.addEventListener('click', () => setLanguage(btn.dataset.lang));
+  });
+  applyStaticTranslations();
+});
+
+applyStaticTranslations();
+
 let nextId = 170;
 let activeFilters = new Set(Object.keys(CATS));
 let activeLocations = new Set(); // empty = all locations shown
@@ -680,14 +890,14 @@ function hideCountryLabel() {
 
 // ── COUNTRY HIGHLIGHT ──
 const COUNTRY_NE = {
-  'EE.UU.':'United States of America','Argentina':'Argentina','Italia':'Italy',
-  'Francia':'France','Suecia':'Sweden','Chile':'Chile','Reino Unido':'United Kingdom',
-  'Grecia':'Greece','Líbano':'Lebanon','Brasil':'Brazil','México':'Mexico',
-  'España':'Spain','Israel':'Israel','Suiza':'Switzerland','Alemania':'Germany',
-  'Australia':'Australia','EAU':'United Arab Emirates','Irlanda':'Ireland',
-  'Montenegro':'Montenegro','Marruecos':'Morocco','Perú':'Peru',
-  'Gibraltar':'United Kingdom','Italia':'Italy','Rusia':'Russia','China':'China',
-  'Japón':'Japan','India':'India','Canadá':'Canada','Polonia':'Poland',
+  'EE.UU.':'United States of America','USA':'United States of America','United States':'United States of America','Argentina':'Argentina','Italia':'Italy','Italy':'Italy',
+  'Francia':'France','France':'France','Suecia':'Sweden','Sweden':'Sweden','Chile':'Chile','Reino Unido':'United Kingdom','United Kingdom':'United Kingdom',
+  'Grecia':'Greece','Greece':'Greece','Líbano':'Lebanon','Lebanon':'Lebanon','Brasil':'Brazil','Brazil':'Brazil','México':'Mexico','Mexico':'Mexico',
+  'España':'Spain','Spain':'Spain','Israel':'Israel','Suiza':'Switzerland','Switzerland':'Switzerland','Alemania':'Germany','Germany':'Germany',
+  'Australia':'Australia','EAU':'United Arab Emirates','UAE':'United Arab Emirates','Irlanda':'Ireland','Ireland':'Ireland',
+  'Montenegro':'Montenegro','Marruecos':'Morocco','Morocco':'Morocco','Perú':'Peru','Peru':'Peru',
+  'Gibraltar':'United Kingdom','Rusia':'Russia','Russia':'Russia','China':'China',
+  'Japón':'Japan','Japan':'Japan','India':'India','Canadá':'Canada','Canada':'Canada','Polonia':'Poland','Poland':'Poland',
 };
 
 function highlightCountryByName(countryStr) {
@@ -840,9 +1050,9 @@ function renderMarkers() {
         const tip = document.getElementById('tip');
         const rect = mapEl.getBoundingClientRect();
         document.getElementById('tip-name').textContent = p.name;
-        document.getElementById('tip-loc').textContent = `${p.city}, ${p.country}`;
+        document.getElementById('tip-loc').textContent = displayLocation(p);
         const tc = document.getElementById('tip-cat');
-        tc.textContent = cat.label;
+        tc.textContent = catLabel(p.cat);
         tc.style.background = cat.bg;
         tc.style.color = cat.color;
         tip.style.left = (event.clientX - rect.left + 16) + 'px';
@@ -867,8 +1077,8 @@ function getVisible() {
       if (!activeLocations.has(key) && !activeLocations.has(countryKey)) return false;
     }
     if (searchQ) {
-      const q = searchQ.toLowerCase();
-      return p.name.toLowerCase().includes(q) || p.city.toLowerCase().includes(q) || p.country.toLowerCase().includes(q);
+      const q = normalizeText(searchQ);
+      return [p.name, p.city, p.country, displayCity(p.city), displayCountry(p.country), catLabel(p.cat), p.desc].some(v => normalizeText(v).includes(q));
     }
     return true;
   });
@@ -900,7 +1110,7 @@ function renderLocTags() {
     const tag = document.createElement('div');
     tag.className = 'loc-tag';
     const isCountry = key.startsWith('__country__');
-    const label = isCountry ? '🌍 ' + key.replace('__country__','') : key.split('||')[0];
+    const label = isCountry ? '🌍 ' + displayCountry(key.replace('__country__','')) : displayCity(key.split('||')[0]);
     tag.innerHTML = `${label}<span>✕</span>`;
     tag.onclick = () => { activeLocations.delete(key); render(); };
     wrap.appendChild(tag);
@@ -917,15 +1127,15 @@ function renderDropdown(q) {
   countries.forEach(country => {
     const cities = [...tree[country]].sort((a,b)=>a.localeCompare(b));
     const countryKey = `__country__${country}`;
-    const matchCountry = country.toLowerCase().includes(q);
-    const matchCities = cities.filter(c => c.toLowerCase().includes(q) || country.toLowerCase().includes(q));
+    const matchCountry = normalizeText(country).includes(q) || normalizeText(displayCountry(country)).includes(q);
+    const matchCities = cities.filter(c => normalizeText(c).includes(q) || normalizeText(displayCity(c)).includes(q) || normalizeText(country).includes(q) || normalizeText(displayCountry(country)).includes(q));
     if (!matchCountry && matchCities.length === 0) return;
     hasResults = true;
 
     // Country row
     const crow = document.createElement('div');
     crow.className = 'dd-country-item' + (activeLocations.has(countryKey) ? ' on' : '');
-    crow.innerHTML = `🌍 ${country} <small style="color:#bbb;font-weight:400">${cities.length} ciudades</small>`;
+    crow.innerHTML = `🌍 ${displayCountry(country)} <small style="color:#bbb;font-weight:400">${cities.length} ${t('cities')}</small>`;
     crow.onclick = () => {
       if (activeLocations.has(countryKey)) { activeLocations.delete(countryKey); cities.forEach(c=>activeLocations.delete(`${c}||${country}`)); }
       else { cities.forEach(c=>activeLocations.delete(`${c}||${country}`)); activeLocations.add(countryKey); }
@@ -941,7 +1151,7 @@ function renderDropdown(q) {
       const cityKey = `${city}||${country}`;
       const row = document.createElement('div');
       row.className = 'dd-item' + (activeLocations.has(cityKey) ? ' on' : '');
-      row.textContent = city;
+      row.textContent = displayCity(city);
       row.onclick = () => {
         activeLocations.delete(countryKey);
         if (activeLocations.has(cityKey)) activeLocations.delete(cityKey);
@@ -956,20 +1166,20 @@ function renderDropdown(q) {
   });
 
   if (!hasResults) {
-    dd.innerHTML = '<div style="padding:12px;font-size:12px;color:#bbb;text-align:center">Sin resultados</div>';
+    dd.innerHTML = `<div style="padding:12px;font-size:12px;color:#bbb;text-align:center">${t('noResults')}</div>`;
   }
   dd.classList.toggle('open', q.length > 0);
 }
 
 document.getElementById('loc-search').addEventListener('input', e => {
-  const q = e.target.value.toLowerCase().trim();
+  const q = normalizeText(e.target.value.trim());
   locSearchQ = q;
   document.getElementById('loc-search-clear').classList.toggle('show', q.length > 0);
   renderDropdown(q);
 });
 
 document.getElementById('loc-search').addEventListener('focus', e => {
-  const q = e.target.value.toLowerCase().trim();
+  const q = normalizeText(e.target.value.trim());
   if (q) renderDropdown(q);
 });
 
@@ -1003,7 +1213,7 @@ function renderFilters() {
     const btn = document.createElement('button');
     btn.className = 'fb' + (on ? ' on' : '');
     btn.style.color = on ? cat.color : '';
-    btn.innerHTML = `<span class="fd" style="background:${cat.color}"></span>${cat.e} ${cat.label}`;
+    btn.innerHTML = `<span class="fd" style="background:${cat.color}"></span>${cat.e} ${catLabel(key)}`;
     btn.onclick = () => {
       if (activeFilters.has(key)) { if (activeFilters.size > 1) activeFilters.delete(key); }
       else activeFilters.add(key);
@@ -1034,7 +1244,7 @@ function renderList() {
     if (!CATS[cat]) return;
     const gh = document.createElement('div');
     gh.className = 'gh';
-    gh.textContent = `${CATS[cat].e} ${CATS[cat].label} (${items.length})`;
+    gh.textContent = `${CATS[cat].e} ${catLabel(cat)} (${items.length})`;
     list.appendChild(gh);
     items.forEach(p => {
       const el = document.createElement('div');
@@ -1043,7 +1253,7 @@ function renderList() {
         <div class="pi-ico" style="background:${CATS[p.cat]?.bg||'#eee'}">${CATS[p.cat]?.e||'📌'}</div>
         <div class="pi-info">
           <div class="pi-name">${p.name}</div>
-          <div class="pi-loc">📍 ${p.city}, ${p.country}</div>
+          <div class="pi-loc">📍 ${displayLocation(p)}</div>
         </div>`;
       el.onclick = () => selectProject(p.id);
       list.appendChild(el);
@@ -1064,12 +1274,12 @@ function selectProject(id) {
   document.getElementById('d-ico').style.background = cat.bg;
   document.getElementById('d-ico').textContent = cat.e;
   document.getElementById('d-name').textContent = p.name;
-  document.getElementById('d-loc').textContent = `📍 ${p.city}, ${p.country}`;
+  document.getElementById('d-loc').textContent = `📍 ${displayLocation(p)}`;
   const tag = document.getElementById('d-tag');
-  tag.textContent = cat.label; tag.style.background = cat.bg; tag.style.color = cat.color;
-  document.getElementById('d-cat').textContent = cat.label;
-  document.getElementById('d-city').textContent = p.city;
-  document.getElementById('d-country').textContent = p.country;
+  tag.textContent = catLabel(p.cat); tag.style.background = cat.bg; tag.style.color = cat.color;
+  document.getElementById('d-cat').textContent = catLabel(p.cat);
+  document.getElementById('d-city').textContent = displayCity(p.city);
+  document.getElementById('d-country').textContent = displayCountry(p.country);
 
   // Description
   const descEl = document.getElementById('d-desc');
@@ -1258,7 +1468,7 @@ document.getElementById('lightbox').addEventListener('touchend', e => {
 // Los datos se guardan en Firebase y son visibles para TODOS los visitantes
 
 // Save indicator UI (definido antes de Firebase para usarlo durante la carga)
-function showSaveIndicator(msg = '✓ Guardado') {
+function showSaveIndicator(msg = '✓ Saved') {
   let ind = document.getElementById('save-ind');
   if (!ind) {
     ind = document.createElement('div');
@@ -1278,7 +1488,7 @@ function showSaveIndicator(msg = '✓ Guardado') {
 }
 
 // Render con datos iniciales mientras carga Firebase
-function render() { renderFilters(); renderLocFilter(); renderList(); renderMarkers(); }
+function render() { applyStaticTranslations(); renderFilters(); renderLocFilter(); renderList(); renderMarkers(); }
 render();
 
 
@@ -1325,7 +1535,7 @@ _fbScript.textContent = `
   // ── CARGAR DATOS AL INICIO — solo lectura ──
   async function loadFromFirebase() {
     try {
-      window.showSaveIndicator('⏳ Cargando portfolio…');
+      window.showSaveIndicator(window.t ? window.t('loading') : '⏳ Loading portfolio…');
 
       let loadedCats = null;
       let loadedMapColors = null;
@@ -1358,10 +1568,10 @@ _fbScript.textContent = `
 
       window.render();
       window.applyMapColors();
-      window.showSaveIndicator('✓ Portfolio cargado');
+      window.showSaveIndicator(window.t ? window.t('loaded') : '✓ Portfolio loaded');
     } catch(e) {
       console.warn('Firebase load error:', e);
-      window.showSaveIndicator('⚠️ No se pudo cargar la nube');
+      window.showSaveIndicator(window.t ? window.t('cloudError') : '⚠️ Cloud data could not be loaded');
       window.render();
     }
   }
@@ -1379,6 +1589,8 @@ window.nextId   = nextId;
 window.render   = render;
 window.applyMapColors = applyMapColors;
 window.showSaveIndicator = showSaveIndicator;
+window.t = t;
+window.setLanguage = setLanguage;
 window.syncCloudState = syncCloudState;
 
 
